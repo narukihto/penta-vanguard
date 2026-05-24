@@ -1,1 +1,5 @@
-
+{
+    "status": "idle",
+    "last_perfect_solution": "// [Penta-V Core Status: Idle]\n// Ready for active session. Paste the GitHub Issue context on the Vanguard dashboard and deploy the workflow runner.",
+    "history": []
+}
