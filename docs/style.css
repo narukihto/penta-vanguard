@@ -1,1 +1,75 @@
+/* Custom Sovereign UI Matrix Stylesheet */
 
+/* Deep space background with safe contrast properties for late-night debugging */
+body {
+    background-color: #0b0f19;
+    background-image: radial-gradient(circle at 50% 0%, #111e36 0%, #0b0f19 70%);
+    color: #f8fafc;
+}
+
+/* Glassmorphism card effects using 2026 responsive layering principles */
+.glow-border {
+    border: 1px solid rgba(51, 65, 85, 0.6);
+    background: rgba(17, 24, 39, 0.45);
+    backdrop-filter: blur(12px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hyper-focused active input manifold state */
+.glow-border:focus-within {
+    border-color: #38bdf8;
+    box-shadow: 0 0 25px rgba(56, 189, 248, 0.15);
+    background: rgba(15, 23, 42, 0.75);
+}
+
+/* Smooth micro-interaction for the primary action engine trigger */
+button {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+/* Custom modern scrollbar geometry to elegantly handle massive text dumps */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.3);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+}
+
+/* Code sandbox interface text rendering styling */
+code, textarea {
+    font-family: 'Fira Code', 'Courier New', Courier, monospace !important;
+    font-feature-settings: "liga" 1;
+}
+
+/* Pulse animation for active sovereign lattice validation states */
+@keyframes sync-pulse {
+    0%, 100% {
+        opacity: 1;
+        box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+    }
+    50% {
+        opacity: 0.4;
+        box-shadow: 0 0 2px rgba(16, 185, 129, 0.2);
+    }
+}
+
+.system-pulse-active {
+    animation: sync-pulse 2s infinite;
+}
