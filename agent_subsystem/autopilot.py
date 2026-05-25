@@ -2,8 +2,6 @@ import os
 import sys
 import json
 import argparse
-import time
-import random
 from google import genai
 from google.genai import types
 from tavily import TavilyClient
@@ -20,7 +18,7 @@ def search_global_knowledge(issue_content: str, tavily_key: str) -> str:
     
     try:
         tavily = TavilyClient(api_key=tavily_key)
-        # تخصيص الاستعلام لجلب كود فعلي من GitHub
+        # استعلام مركز لجلب كود فعلي من GitHub
         search_query = f"github.com code solution for: {issue_content[:100]} site:github.com"
         response = tavily.search(query=search_query, include_raw_content=False, max_results=3)
         
@@ -49,7 +47,7 @@ def main():
     print("🔍 [Vanguard] Harvesting technical solutions from GitHub repositories...")
     external_context = search_global_knowledge(args.issue_content, tavily_key)
 
-    # 2. التوليد باستخدام نموذج Flash حصراً لتقليل ضغط الكوتا
+    # 2. التوليد باستخدام نموذج Flash
     ai_client = genai.Client(api_key=gemini_key)
     model_name = 'gemini-2.5-flash'
     
@@ -63,7 +61,9 @@ def main():
     Strict technical compliance. No conversational filler.
     """
 
+    proposed_code = None
     print(f"🧠 [Vanguard] Synthesizing fix via {model_name}...")
+    
     try:
         response = ai_client.models.generate_content(
             model=model_name, 
@@ -75,8 +75,14 @@ def main():
         )
         proposed_code = response.text
     except Exception as e:
+        # منطق الطوارئ (Fallback): إذا فشل Gemini، استرجع نتائج Tavily الخام
         print(f"🚨 [Vanguard] Synthesis failure: {str(e)}")
-        sys.exit(1)
+        print("🛡️ [Vanguard] Activating Fallback: Extracting raw context from Tavily...")
+        
+        if "REPOSITORY CONTEXT INJECTION" in external_context:
+            proposed_code = f"// [System Fallback Alert] Gemini Manifold Offline. Raw Tavily findings:\n\n{external_context}"
+        else:
+            proposed_code = "// [Fatal] Both Gemini and Tavily yielded no actionable logic."
 
     # 3. التحقق الهيكلي
     print("🛡️ [Penta-V Core] Commencing sub-geometric coherence validation...")
