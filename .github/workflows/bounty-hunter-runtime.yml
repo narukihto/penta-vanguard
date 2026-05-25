@@ -8,19 +8,17 @@ on:
         required: true
         type: string
 
-# Permissions strictly mapped for flat-file database tracking, action execution, and live pages delivery
 permissions:
   contents: write
   pages: write
   id-token: write
-  actions: write # تمت الإضافة لتمكين المتصفح من تحفيز البيئة مباشرة
+  actions: write
 
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
-  # Job 1: Execute Global Knowledge Harvesting & Logic Purification
   purify_and_resolve:
     environment: github-pages
     runs-on: ubuntu-latest
@@ -28,12 +26,12 @@ jobs:
       - name: Checkout Sovereign Repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.VANGUARD_GITHUB_TOKEN }} # استخدام توكن التحكم الخاص بك
+          token: ${{ secrets.VANGUARD_GITHUB_TOKEN }}
 
       - name: Setup Pinned Enterprise Python Environment
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11' # تم تصحيح المسمى هنا لمنع تحذير وبيئة الـ GitHub Runner
+          python-version: '3.11'
           cache: 'pip'
 
       - name: Install Verified 2026 Dependencies
@@ -48,16 +46,15 @@ jobs:
         run: |
           python agent_subsystem/autopilot.py --issue_content "${{ github.event.inputs.issue_content }}"
 
-      - name: Commit Structural State Hydration (tracker.json)
+      - name: Commit Structural State Hydration
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action Artifact Bot"
-          git add agent_subsystem/tracker.json
-          # Avoid failing the pipeline if tracker outcomes remain identical
-          git diff-index --quiet HEAD || git commit -m "💾 [Database Auto-Sync] Hydrated telemetry state metrics"
+          # إضافة الملفات الذرية الجديدة للمزامنة
+          git add agent_subsystem/tracker.json circuit_impl.tsx circuit_impl.test.ts
+          git diff-index --quiet HEAD || git commit -m "💾 [Database Auto-Sync] Hydrated state and atomic circuit artifacts"
           git push
 
-  # Job 2: Automate GitHub Pages Deployment Layer
   deploy_sovereign_dashboard:
     needs: purify_and_resolve
     runs-on: ubuntu-latest
