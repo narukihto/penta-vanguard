@@ -73,9 +73,11 @@ def main():
     
     Analyze the payload, apply global knowledge context, and output the absolute structural code fix:
     """
-try:
+
+    try:
+        # استخدام المعرّف المستقر والافتراضي للإنتاج الحجمي لضمان الـ Routing الصحيح في الـ SDK 2.6.0
         response = ai_client.models.generate_content(
-            model='models/gemini-1.5-pro',  # إضافة بادئة models/ لحل مشكلة الـ Routing في الـ SDK v2.6.0 قاطعاً
+            model='gemini-2.5-pro', 
             contents=prompt,
             config=types.GenerateContentConfig(
                 system_instruction=system_instruction,
@@ -85,8 +87,21 @@ try:
         )
         proposed_code = response.text
     except Exception as e:
-        print(f"🚨 [Fatal] GenAI Engine error during model evaluation: {str(e)}")
-        sys.exit(1)
+        # إذا لم يكن الحساب ممتلكاً لترقية الـ 2.5 الصريحة، يتم الانتقال تلقائياً للمعرّف الأساسي البديل
+        try:
+            response = ai_client.models.generate_content(
+                model='gemini-1.5-pro',
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_instruction,
+                    temperature=0.0,
+                    max_output_tokens=8192
+                )
+            )
+            proposed_code = response.text
+        except Exception as inner_e:
+            print(f"🚨 [Fatal] GenAI Engine error during model evaluation: {str(inner_e)}")
+            sys.exit(1)
 
     print("🛡️ [Penta-V Core Gate] Commencing sub-geometric coherence validation check...")
 
