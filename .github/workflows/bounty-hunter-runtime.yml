@@ -8,11 +8,12 @@ on:
         required: true
         type: string
 
-# Permissions required to update flat-file tracking and deploy static pages
+# Permissions strictly mapped for flat-file database tracking, action execution, and live pages delivery
 permissions:
   contents: write
   pages: write
   id-token: write
+  actions: write # تمت الإضافة لتمكين المتصفح من تحفيز البيئة مباشرة
 
 concurrency:
   group: "pages"
@@ -27,12 +28,12 @@ jobs:
       - name: Checkout Sovereign Repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.VANGUARD_GITHUB_TOKEN }}
+          token: ${{ secrets.VANGUARD_GITHUB_TOKEN }} # استخدام توكن التحكم الخاص بك
 
       - name: Setup Pinned Enterprise Python Environment
         uses: actions/setup-python@v5
         with:
-          python-python-version: '3.11'
+          python-version: '3.11' # تم تصحيح المسمى هنا لمنع تحذير وبيئة الـ GitHub Runner
           cache: 'pip'
 
       - name: Install Verified 2026 Dependencies
