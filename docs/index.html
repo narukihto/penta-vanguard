@@ -4,38 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Penta-V Vanguard | Sovereign Bounty Hunter</title>
-    <!-- Tailwind CSS for high-fidelity responsive layout -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Custom styles for Cyberpunk Dark Theme and smooth massive text handling */
-        body {
-            background-color: #0b0f19;
-            color: #f8fafc;
-        }
-        .glow-border:focus-within {
-            border-color: #38bdf8;
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
-        }
-        /* Custom scrollbar for massive textareas */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #111827;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="min-h-screen flex flex-col font-sans antialiased">
 
-    <!-- Top Sovereign Header -->
     <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur px-6 py-4 flex justify-between items-center">
         <div class="flex items-center space-x-3 space-x-reverse">
             <span class="text-2xl">🛡️</span>
@@ -45,21 +18,18 @@
             </div>
         </div>
         <div class="flex items-center space-x-2 space-x-reverse">
-            <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span id="systemStatus" class="text-xs font-mono uppercase tracking-wider text-emerald-400">System: Sovereign</span>
+            <span id="systemPulse" class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="systemStatus" class="text-xs font-mono uppercase tracking-wider text-emerald-400 font-bold">System: Sovereign</span>
         </div>
     </header>
 
-    <!-- Main Workspace Dashboard (Split View) -->
     <main class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 h-[calc(100vh-140px)]">
         
-        <!-- Left Column: Input (Massive Code/Issue Intake) -->
         <section class="flex flex-col bg-slate-900/40 border border-slate-800/80 rounded-xl p-5 space-y-4 glow-border">
             <div class="flex justify-between items-center">
                 <h2 class="text-sm font-semibold tracking-wider text-slate-300 uppercase">📂 Issue & Repository Context Intake</h2>
                 <span class="text-xs font-mono text-slate-500">Supports up to 2M Tokens</span>
             </div>
-            <!-- Large Elastic Textarea optimized for huge payloads -->
             <textarea id="issuePayload" 
                       class="flex-1 w-full bg-slate-950/80 text-slate-200 font-mono text-sm border border-slate-800 rounded-lg p-4 focus:outline-none resize-none placeholder-slate-600 transition-all duration-200"
                       placeholder="Paste the complete GitHub Issue description, error stack traces, and relevant source code files here..."></textarea>
@@ -71,90 +41,24 @@
             </button>
         </section>
 
-        <!-- Right Column: Output (Certified Code Analytics) -->
         <section class="flex flex-col bg-slate-900/40 border border-slate-800/80 rounded-xl p-5 space-y-4">
             <div class="flex justify-between items-center">
                 <h2 class="text-sm font-semibold tracking-wider text-slate-300 uppercase">💻 Certified Code Solution</h2>
-                <button onclick="copyCertifiedCode()" 
+                <button onclick="copyCertifiedCode()" id="copyBtn"
                         class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium py-1.5 px-3 rounded border border-slate-700 transition-colors duration-150">
                     📋 Copy Code
                 </button>
             </div>
-            <!-- Read-only Code Viewbox styled like modern IDE -->
-            <div class="flex-1 w-full bg-slate-950/90 border border-slate-800 rounded-lg p-4 overflow-auto font-mono text-sm text-sky-400 select-all whitespace-pre">
-<code id="certifiedOutput">// Automated code fixes verified by Penta-V Lattice will project here...
-// Waiting for active session deployment loop.</code>
-            </div>
+            <div class="flex-1 w-full bg-slate-950/90 border border-slate-800 rounded-lg p-4 overflow-auto font-mono text-sm text-sky-400 select-all whitespace-pre"><code id="certifiedOutput">// Automated code fixes verified by Penta-V Lattice will project here...
+// Waiting for active session deployment loop.</code></div>
         </section>
     </main>
 
-    <!-- Bottom Telemetry Status Bar -->
     <footer class="border-t border-slate-800/60 bg-slate-950/60 px-6 py-2.5 flex justify-between text-xs font-mono text-slate-500">
         <div>Entropy Vector: <span id="entropyValue" class="text-slate-400">0.00 (Stable)</span></div>
         <div>Penta-V Core Integration: <span class="text-sky-400">v0.4.0 (PyPI Active)</span></div>
     </footer>
 
-    <!-- JavaScript Controller Module -->
-    <script>
-        // Real-time tracking loop controller
-        async function triggerVanguardWorkflow() {
-            const payload = document.getElementById('issuePayload').value.trim();
-            if (!payload) {
-                alert('Sovereign Check: Issue payload cannot be void.');
-                return;
-            }
-
-            document.getElementById('systemStatus').innerText = "System: Processing...";
-            document.getElementById('systemStatus').className = "text-xs font-mono uppercase tracking-wider text-amber-400";
-            document.getElementById('certifiedOutput').innerText = "// Dispatching execution frame to GitHub Actions...\n// Syncing Penta-V-Core components...";
-
-            // Trigger GitHub Workflow Dispatch securely without hardcoded keys
-            // This interface initiates repository events via GitHub Actions workflow variables safely
-            try {
-                // NOTE: The UI communicates securely with the file database update triggers
-                alert('Protocol Triggered: Submit the action inside your Private GitHub Repository using the workflow_dispatch trigger with this payload.');
-                startPollingResolution();
-            } catch (error) {
-                document.getElementById('systemStatus').innerText = "System: Failed";
-                document.getElementById('systemStatus').className = "text-xs font-mono uppercase tracking-wider text-rose-500";
-            }
-        }
-
-        // Poll the flat-file database tracker.json to dynamic display clean solutions
-        function startPollingResolution() {
-            const outputBox = document.getElementById('certifiedOutput');
-            const statusLabel = document.getElementById('systemStatus');
-            
-            const interval = setInterval(async () => {
-                try {
-                    // Cache busting mechanism for raw dynamic file streaming in 2026 standards
-                    const response = await fetch('../agent_subsystem/tracker.json?nocache=' + Date.now());
-                    if (response.ok) {
-                        const db = await response.json();
-                        if (db.status === "ready") {
-                            outputBox.innerText = db.last_perfect_solution;
-                            statusLabel.innerText = "System: Core Immune";
-                            statusLabel.className = "text-xs font-mono uppercase tracking-wider text-emerald-400";
-                            document.getElementById('entropyValue').innerText = "0.00 (Unitary)";
-                            clearInterval(interval);
-                        } else if (db.status === "failed") {
-                            outputBox.innerText = db.last_perfect_solution;
-                            statusLabel.innerText = "System: Locked Down";
-                            statusLabel.className = "text-xs font-mono uppercase tracking-wider text-rose-500";
-                            clearInterval(interval);
-                        }
-                    }
-                } catch (e) {
-                    // Fail silently and retry on next tick
-                }
-            }, 7000); // Check consistency every 7 seconds
-        }
-
-        // Utility helper to copy processed logic to clipboard
-        function copyCertifiedCode() {
-            const codeText = document.getElementById('certifiedOutput').innerText;
-            navigator.clipboard.writeText(codeText);
-        }
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
