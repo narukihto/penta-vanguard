@@ -1,18 +1,35 @@
-/* Custom Sovereign UI Matrix Stylesheet */
+/* Custom Sovereign UI Matrix Stylesheet - Tri-Axis Support */
 
-/* Deep space background with safe contrast properties for late-night debugging */
+/* Deep space background */
 body {
     background-color: #0b0f19;
     background-image: radial-gradient(circle at 50% 0%, #111e36 0%, #0b0f19 70%);
     color: #f8fafc;
 }
 
-/* Glassmorphism card effects using 2026 responsive layering principles */
+/* Glassmorphism card effects */
 .glow-border {
     border: 1px solid rgba(51, 65, 85, 0.6);
     background: rgba(17, 24, 39, 0.45);
     backdrop-filter: blur(12px);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Tri-Axis Grid Container Adjustments */
+/* التأكد من توزيع المساحات الثلاثية بشكل متناسب */
+main {
+    display: grid;
+    grid-template-columns: minmax(300px, 1fr) minmax(400px, 1.5fr) minmax(400px, 1.5fr);
+    gap: 1rem;
+    padding: 1.5rem;
+}
+
+/* خانات الكود والاختبارات المخصصة */
+#certifiedOutput, #certifiedTests {
+    font-family: 'Fira Code', 'Courier New', Courier, monospace !important;
+    font-size: 11px;
+    line-height: 1.6;
+    background: rgba(0, 0, 0, 0.4);
 }
 
 /* Hyper-focused active input manifold state */
@@ -22,91 +39,38 @@ body {
     background: rgba(15, 23, 42, 0.75);
 }
 
-/* Smooth micro-interaction for the primary action engine trigger */
-button {
-    position: relative;
-    overflow: hidden;
-    transition: all 0.2s ease;
-}
-
-button:active {
-    transform: scale(0.98);
-}
-
-/* Custom modern scrollbar geometry to elegantly handle massive text dumps */
-::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-
-::-webkit-scrollbar-track {
-    background: rgba(15, 23, 42, 0.3);
-}
-
-::-webkit-scrollbar-thumb {
-    background: #334155;
-    border-radius: 20px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #475569;
-}
-
-/* Code sandbox interface text rendering styling */
-code, textarea {
-    font-family: 'Fira Code', 'Courier New', Courier, monospace !important;
-    font-feature-settings: "liga" 1;
-}
+/* Modern scrollbar geometry */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.3); }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 20px; }
+::-webkit-scrollbar-thumb:hover { background: #475569; }
 
 /* --- Sovereign Pulse Animations --- */
 
-/* 1️⃣ Green Pulse: Core Immune / Stable State */
 @keyframes sync-pulse-emerald {
-    0%, 100% {
-        opacity: 1;
-        box-shadow: 0 0 12px rgba(16, 185, 129, 0.7);
-    }
-    50% {
-        opacity: 0.4;
-        box-shadow: 0 0 3px rgba(16, 185, 129, 0.2);
-    }
+    0%, 100% { opacity: 1; box-shadow: 0 0 12px rgba(16, 185, 129, 0.7); }
+    50% { opacity: 0.4; box-shadow: 0 0 3px rgba(16, 185, 129, 0.2); }
 }
 
-/* 2️⃣ Amber Pulse: Active Processing State */
 @keyframes sync-pulse-amber {
-    0%, 100% {
-        opacity: 1;
-        box-shadow: 0 0 12px rgba(245, 158, 11, 0.7);
-    }
-    50% {
-        opacity: 0.4;
-        box-shadow: 0 0 3px rgba(245, 158, 11, 0.2);
-    }
+    0%, 100% { opacity: 1; box-shadow: 0 0 12px rgba(245, 158, 11, 0.7); }
+    50% { opacity: 0.4; box-shadow: 0 0 3px rgba(245, 158, 11, 0.2); }
 }
 
-/* 3️⃣ Rose Pulse: System Lockdown / Error Frame State */
 @keyframes sync-pulse-rose {
-    0%, 100% {
-        opacity: 1;
-        box-shadow: 0 0 14px rgba(244, 63, 94, 0.8);
+    0%, 100% { opacity: 1; box-shadow: 0 0 14px rgba(244, 63, 94, 0.8); }
+    50% { opacity: 0.4; box-shadow: 0 0 4px rgba(244, 63, 94, 0.3); }
+}
+
+/* Binding logic to indicators */
+.bg-emerald-500 { animation: sync-pulse-emerald 2s infinite ease-in-out !important; }
+.bg-amber-400.system-pulse-active { animation: sync-pulse-amber 1.2s infinite ease-in-out !important; }
+.bg-rose-500 { animation: sync-pulse-rose 1s infinite ease-in-out !important; }
+
+/* Responsive adjustments for Tablets/smaller screens */
+@media (max-width: 1280px) {
+    main {
+        grid-template-columns: 1fr;
+        height: auto !important;
     }
-    50% {
-        opacity: 0.4;
-        box-shadow: 0 0 4px rgba(244, 63, 94, 0.3);
-    }
-}
-
-/* --- Binding structural dynamic classes directly to current states --- */
-
-
-.bg-emerald-500, .bg-emerald-500.animate-pulse {
-    animation: sync-pulse-emerald 2s infinite ease-in-out !important;
-}
-
-.bg-amber-400.system-pulse-active {
-    animation: sync-pulse-amber 1.2s infinite ease-in-out !important;
-}
-
-.bg-rose-500 {
-    animation: sync-pulse-rose 1s infinite ease-in-out !important;
 }
