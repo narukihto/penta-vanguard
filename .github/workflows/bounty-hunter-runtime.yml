@@ -38,6 +38,8 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          # تثبيت المكتبة السيادية لضمان منع الهلوسة
+          pip install penta-v-kernel==0.4.3
 
       - name: Execute Vanguard Autopilot Engine
         env:
@@ -50,13 +52,11 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action Artifact Bot"
-          # إضافة الملفات فقط إذا كانت موجودة فعلياً لمنع فشل الـ CI
           git add agent_subsystem/tracker.json
           if [ -f "circuit_impl.tsx" ]; then git add circuit_impl.tsx; fi
           if [ -f "circuit_impl.test.ts" ]; then git add circuit_impl.test.ts; fi
           
-          # التأكد من وجود تغييرات قبل الـ Commit
-          git diff --staged --quiet || git commit -m "💾 [Database Auto-Sync] Hydrated state and atomic circuit artifacts"
+          git diff --staged --quiet || git commit -m "💾 [Database Auto-Sync] Hydrated state and atomic circuit artifacts with Kernel Validation"
           git push
 
   deploy_sovereign_dashboard:
