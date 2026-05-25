@@ -105,7 +105,8 @@ def main():
     print("🛡️ [Penta-V Core Gate] Commencing sub-geometric coherence validation check...")
 
     # Step 3: Run generated logic signatures through your native Rust-backed PyPI shield
-    monitor = HeartbeatMonitor()
+    # تم إصلاح الاستدعاء هنا وحقن المعامل المطلوب بصرامة للإصدار 0.4.3
+    monitor = HeartbeatMonitor(debt_threshold=1.0)
     stability_score = monitor.get_current_stability()
     
     # Create the cryptographic-grade validation token using Penta-V stability metrics
