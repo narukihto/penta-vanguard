@@ -7,9 +7,9 @@ from google import genai
 from google.genai import types
 from tavily import TavilyClient
 
-# Importing your sovereign infrastructure components from PyPI package
+# Importing your sovereign infrastructure components directly from the core PyPI package
 import penta_v_kernel
-from penta_v_kernel.bridge import LogicSignature, HeartbeatMonitor
+from penta_v_kernel import LogicSignature, HeartbeatMonitor 
 
 def search_global_knowledge(issue_content: str, tavily_key: str) -> str:
     """
