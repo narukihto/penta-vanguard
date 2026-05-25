@@ -1,13 +1,28 @@
 /**
  * Penta-V Vanguard UI Controller Substrate
  * Handles massive content stream mapping, dynamic polling, and state hydration.
- * Updated for direct, automated background workflow dispatch execution.
+ * Updated for secure, authenticated background workflow dispatch execution.
  */
 
 document.addEventListener("DOMContentLoaded", () => {
     // Check local sync status on interface initialization
     hydrateInterfaceState();
 });
+
+/**
+ * Ensures a valid GitHub Personal Access Token exists in localStorage before transmission.
+ */
+function getSovereignAuthToken() {
+    let token = localStorage.getItem("VANGUARD_TOKEN");
+    if (!token) {
+        // طلب التوكن بأمان من المطور لمرة واحدة لتجنب تسريبه في كود الواجهة العامة
+        token = prompt("🔒 [Penta-V Guard] Authentication Required.\nPlease enter your GitHub Personal Access Token (PAT) with Actions-Write access:");
+        if (token) {
+            localStorage.setItem("VANGUARD_TOKEN", token.trim());
+        }
+    }
+    return token;
+}
 
 /**
  * Initiates the automated code hunting pipeline via GitHub Action stream mapping.
@@ -24,6 +39,13 @@ async function triggerVanguardWorkflow() {
         return;
     }
 
+    // استدعاء مفتاح التوثيق الآمن من حاوية العميل المحلية
+    const authToken = getSovereignAuthToken();
+    if (!authToken) {
+        alert("🔒 Sovereign Check Failed: Action aborted due to missing GitHub Authentication Token.");
+        return;
+    }
+
     // الإعدادات البنيوية الخاصة بمستودعك لربط الـ API
     const owner = "narukihto"; 
     const repo = "penta-vanguard";
@@ -34,15 +56,16 @@ async function triggerVanguardWorkflow() {
     statusLabel.className = "text-xs font-mono uppercase tracking-wider text-amber-400 system-pulse-active";
     if(pulseIndicator) pulseIndicator.className = "w-3 h-3 rounded-full bg-amber-400 system-pulse-active animate-pulse";
     
-    outputCodeContainer.innerText = "// Ingesting massive bounty registry stream...\n// Forwarding intelligence frame to private execution workspace via API...\n// Triggering private GitHub Runner via VANGUARD_GITHUB_TOKEN...";
+    outputCodeContainer.innerText = "// Ingesting massive bounty registry stream...\n// Forwarding intelligence frame to private execution workspace via API...\n// Triggering private GitHub Runner via Secure Localized GITHUB_TOKEN...";
 
     try {
-        // استدعاء مباشر لـ GitHub API من المتصفح لتشغيل الـ Action صامتاً دون مغادرة الموقع
+        // استدعاء مباشر لـ GitHub API مع حقن عنوان التوثيق المعتمد لحل مشكلة الـ 401
         const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workflowId}/dispatches`, {
             method: "POST",
             headers: {
                 "Accept": "application/vnd.github+json",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${authToken}` // حقن التوكن بشكل آمن ومعتمد في الـ Request Headers
             },
             body: JSON.stringify({
                 ref: "main",
@@ -59,6 +82,11 @@ async function triggerVanguardWorkflow() {
             startPollingResolution();
         } else {
             const errData = await response.text();
+            // في حال كان التوكن منتهي الصلاحية، يتم حذفه تلقائياً ليطلب المتصفح توكناً جديداً في المحاولة القادمة
+            if (response.status === 401) {
+                localStorage.removeItem("VANGUARD_TOKEN");
+                throw new Error("Invalid or expired GitHub Token. Local token storage flushed. Please re-trigger to input a valid key.");
+            }
             throw new Error(`GitHub Routing Layer Rejected: ${response.status} - ${errData}`);
         }
 
