@@ -58,18 +58,53 @@ code, textarea {
     font-feature-settings: "liga" 1;
 }
 
-/* Pulse animation for active sovereign lattice validation states */
-@keyframes sync-pulse {
+/* --- Sovereign Pulse Animations --- */
+
+/* 1️⃣ Green Pulse: Core Immune / Stable State */
+@keyframes sync-pulse-emerald {
     0%, 100% {
         opacity: 1;
-        box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
     }
     50% {
-        opacity: 0.4;
-        box-shadow: 0 0 2px rgba(16, 185, 129, 0.2);
+        opacity: 0.5;
+        box-shadow: 0 0 3px rgba(16, 185, 129, 0.2);
     }
 }
 
+/* 2️⃣ Amber Pulse: Active Processing State */
+@keyframes sync-pulse-amber {
+    0%, 100% {
+        opacity: 1;
+        box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+    }
+    50% {
+        opacity: 0.4;
+        box-shadow: 0 0 3px rgba(245, 158, 11, 0.2);
+    }
+}
+
+/* 3️⃣ Rose Pulse: System Lockdown / Error Frame State */
+@keyframes sync-pulse-rose {
+    0%, 100% {
+        opacity: 1;
+        box-shadow: 0 0 12px rgba(244, 63, 94, 0.7);
+    }
+    50% {
+        opacity: 0.5;
+        box-shadow: 0 0 4px rgba(244, 63, 94, 0.3);
+    }
+}
+
+/* Binding structural dynamic classes to the animations */
 .system-pulse-active {
-    animation: sync-pulse 2s infinite;
+    animation: sync-pulse-amber 1.5s infinite ease-in-out;
+}
+
+.bg-emerald-500.animate-pulse {
+    animation: sync-pulse-emerald 2s infinite ease-in-out;
+}
+
+.bg-rose-500 {
+    animation: sync-pulse-rose 1s infinite ease-in-out;
 }
