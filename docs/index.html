@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="min-h-screen flex flex-col font-sans antialiased">
+<body class="min-h-screen flex flex-col font-sans antialiased bg-slate-950 text-slate-100">
 
     <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur px-6 py-4 flex justify-between items-center">
         <div class="flex items-center space-x-3 space-x-reverse">
@@ -44,10 +44,17 @@
         <section class="flex flex-col bg-slate-900/40 border border-slate-800/80 rounded-xl p-5 space-y-4">
             <div class="flex justify-between items-center">
                 <h2 class="text-sm font-semibold tracking-wider text-slate-300 uppercase">💻 Certified Code Solution</h2>
-                <button onclick="copyCertifiedCode()" id="copyBtn"
-                        class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium py-1.5 px-3 rounded border border-slate-700 transition-colors duration-150">
-                    📋 Copy Code
-                </button>
+                <div class="flex items-center space-x-2 space-x-reverse">
+                    <button onclick="localStorage.removeItem('VANGUARD_TOKEN'); alert('🔒 [Penta-V] Token storage flushed. You will be prompted for a new token on the next resolution trigger.');" 
+                            class="text-xs bg-slate-900 hover:bg-slate-800 text-slate-400 font-medium py-1.5 px-2.5 rounded border border-slate-800 transition-colors duration-150"
+                            title="Reset GitHub Access Token">
+                        🔑 Reset Token
+                    </button>
+                    <button onclick="copyCertifiedCode()" id="copyBtn"
+                            class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium py-1.5 px-3 rounded border border-slate-700 transition-colors duration-150">
+                        📋 Copy Code
+                    </button>
+                </div>
             </div>
             <div class="flex-1 w-full bg-slate-950/90 border border-slate-800 rounded-lg p-4 overflow-auto font-mono text-sm text-sky-400 select-all whitespace-pre"><code id="certifiedOutput">// Automated code fixes verified by Penta-V Lattice will project here...
 // Waiting for active session deployment loop.</code></div>
