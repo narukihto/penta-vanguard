@@ -50,9 +50,13 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action Artifact Bot"
-          # إضافة الملفات الذرية الجديدة للمزامنة
-          git add agent_subsystem/tracker.json circuit_impl.tsx circuit_impl.test.ts
-          git diff-index --quiet HEAD || git commit -m "💾 [Database Auto-Sync] Hydrated state and atomic circuit artifacts"
+          # إضافة الملفات فقط إذا كانت موجودة فعلياً لمنع فشل الـ CI
+          git add agent_subsystem/tracker.json
+          if [ -f "circuit_impl.tsx" ]; then git add circuit_impl.tsx; fi
+          if [ -f "circuit_impl.test.ts" ]; then git add circuit_impl.test.ts; fi
+          
+          # التأكد من وجود تغييرات قبل الـ Commit
+          git diff --staged --quiet || git commit -m "💾 [Database Auto-Sync] Hydrated state and atomic circuit artifacts"
           git push
 
   deploy_sovereign_dashboard:
