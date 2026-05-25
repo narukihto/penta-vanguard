@@ -1,7 +1,7 @@
 /**
  * Penta-V Vanguard UI Controller Substrate
  * Handles massive content stream mapping, dynamic polling, and state hydration.
- * Updated for secure, authenticated background workflow dispatch execution.
+ * Optimized for instant API-level flat-file telemetry sync bypassing GitHub Pages CDN delay.
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -15,14 +15,18 @@ document.addEventListener("DOMContentLoaded", () => {
 function getSovereignAuthToken() {
     let token = localStorage.getItem("VANGUARD_TOKEN");
     if (!token) {
-        // طلب التوكن بأمان من المطور لمرة واحدة لتجنب تسريبه في كود الواجهة العامة
-        token = prompt("🔒 [Penta-V Guard] Authentication Required.\nPlease enter your GitHub Personal Access Token (PAT) with Actions-Write access:");
+        token = prompt("🔒 [Penta-V Guard] Authentication Required.\nPlease enter your GitHub Personal Access Token (PAT) with Actions-Write and Code-Read access:");
         if (token) {
             localStorage.setItem("VANGUARD_TOKEN", token.trim());
         }
     }
     return token;
 }
+
+// الإعدادات البنيوية الثابتة للمستودع
+const OWNER = "narukihto"; 
+const REPO = "penta-vanguard";
+const WORKFLOW_ID = "bounty-hunter-runtime.yml";
 
 /**
  * Initiates the automated code hunting pipeline via GitHub Action stream mapping.
@@ -39,19 +43,13 @@ async function triggerVanguardWorkflow() {
         return;
     }
 
-    // استدعاء مفتاح التوثيق الآمن من حاوية العميل المحلية
     const authToken = getSovereignAuthToken();
     if (!authToken) {
         alert("🔒 Sovereign Check Failed: Action aborted due to missing GitHub Authentication Token.");
         return;
     }
 
-    // الإعدادات البنيوية الخاصة بمستودعك لربط الـ API
-    const owner = "narukihto"; 
-    const repo = "penta-vanguard";
-    const workflowId = "bounty-hunter-runtime.yml";
-
-    // Adapt UI layer into processing/stress states
+    // تحويل الواجهة إلى حالة المعالجة والنبض البرتقالي
     statusLabel.innerText = "System: Processing Payload...";
     statusLabel.className = "text-xs font-mono uppercase tracking-wider text-amber-400 system-pulse-active";
     if(pulseIndicator) pulseIndicator.className = "w-3 h-3 rounded-full bg-amber-400 system-pulse-active animate-pulse";
@@ -59,13 +57,12 @@ async function triggerVanguardWorkflow() {
     outputCodeContainer.innerText = "// Ingesting massive bounty registry stream...\n// Forwarding intelligence frame to private execution workspace via API...\n// Triggering private GitHub Runner via Secure Localized GITHUB_TOKEN...";
 
     try {
-        // استدعاء مباشر لـ GitHub API مع حقن عنوان التوثيق المعتمد لحل مشكلة الـ 401
-        const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workflowId}/dispatches`, {
+        const response = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${WORKFLOW_ID}/dispatches`, {
             method: "POST",
             headers: {
                 "Accept": "application/vnd.github+json",
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${authToken}` // حقن التوكن بشكل آمن ومعتمد في الـ Request Headers
+                "Authorization": `Bearer ${authToken}`
             },
             body: JSON.stringify({
                 ref: "main",
@@ -76,13 +73,12 @@ async function triggerVanguardWorkflow() {
         });
 
         if (response.ok || response.status === 204) {
-            outputCodeContainer.innerText = "// ✅ Payload accepted and route verified!\n// Background pipeline initialized successfully.\n// Monitoring tracker state for purified logic results (Polling live)...";
+            outputCodeContainer.innerText = "// ✅ Payload accepted and route verified!\n// Background pipeline initialized successfully.\n// Fetching fresh live metrics directly from GitHub Repository API (Bypassing CDN Cache)...";
             
-            // Initiate active background validation engine tracking
+            // إطلاق دالة الاستماع الذكي والفوري
             startPollingResolution();
         } else {
             const errData = await response.text();
-            // في حال كان التوكن منتهي الصلاحية، يتم حذفه تلقائياً ليطلب المتصفح توكناً جديداً في المحاولة القادمة
             if (response.status === 401) {
                 localStorage.removeItem("VANGUARD_TOKEN");
                 throw new Error("Invalid or expired GitHub Token. Local token storage flushed. Please re-trigger to input a valid key.");
@@ -96,26 +92,31 @@ async function triggerVanguardWorkflow() {
         if(pulseIndicator) pulseIndicator.className = "w-3 h-3 rounded-full bg-rose-500";
         outputCodeContainer.innerText = `// Structural error intercepted during transmission: ${error.message}\n// Falling back to active tracking layer sync loop...`;
         
-        // المحاولة التلقائية للاستماع للـ Tracker في كل الأحوال
         startPollingResolution();
     }
 }
 
 /**
- * Continuously monitors the repository flat-file data tracker to pull non-hallucinated outcomes.
+ * Continuously monitors the repo file via GitHub API to grab real-time outputs instantly.
  */
 function startPollingResolution() {
     const outputCodeContainer = document.getElementById('certifiedOutput');
     const statusLabel = document.getElementById('systemStatus');
     const pulseIndicator = document.getElementById('systemPulse');
     const entropyIndicator = document.getElementById('entropyValue');
+    const authToken = localStorage.getItem("VANGUARD_TOKEN");
     
-    // Check consistency intervals dynamically to reduce cloud execution footprints
     const trackingInterval = setInterval(async () => {
         try {
-            // Cache busting using 2026 epoch millisecond hashes to guarantee fresh data streams
-            const queryUrl = `../agent_subsystem/tracker.json?epoch=${Date.now()}`;
-            const streamResult = await fetch(queryUrl);
+            // استعلام مباشر من الـ API الخاص بملفات جيت هاب لجلب التحديث في نفس ثانية الـ Push
+            const apiUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/agent_subsystem/tracker.json?ref=main&t=${Date.now()}`;
+            
+            const headers = { "Accept": "application/vnd.github.v3.raw" };
+            if (authToken) {
+                headers["Authorization"] = `Bearer ${authToken}`;
+            }
+
+            const streamResult = await fetch(apiUrl, { headers: headers });
             
             if (streamResult.ok) {
                 const telemetryData = await streamResult.json();
@@ -139,17 +140,24 @@ function startPollingResolution() {
                 }
             }
         } catch (fetchError) {
-            // Fail silently, retry on next scheduled engine tick to maintain seamless layout runtime
+            // الحفاظ على استمرارية اللوب في حال حدوث خطأ شبكة عابر
         }
-    }, 6000); // Poll every 6 seconds for clean runtime state propagation
+    }, 4000); // فحص مكثف كل 4 ثوانٍ من الـ API المباشر لسرعة استجابة فائقة
 }
 
 /**
- * Syncs the frontend viewbox layer on initial mount with current file telemetry state.
+ * Syncs the frontend viewbox layer on initial mount using direct repository endpoint.
  */
 async function hydrateInterfaceState() {
+    const authToken = localStorage.getItem("VANGUARD_TOKEN");
     try {
-        const check = await fetch(`../agent_subsystem/tracker.json?epoch=${Date.now()}`);
+        const apiUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/agent_subsystem/tracker.json?ref=main&t=${Date.now()}`;
+        const headers = { "Accept": "application/vnd.github.v3.raw" };
+        if (authToken) {
+            headers["Authorization"] = `Bearer ${authToken}`;
+        }
+
+        const check = await fetch(apiUrl, { headers: headers });
         if (check.ok) {
             const data = await check.json();
             if (data.status === "ready") {
@@ -157,7 +165,7 @@ async function hydrateInterfaceState() {
             }
         }
     } catch (e) {
-        // Core layer remains pristine if structural state file is uninitialized
+        // يبقى الساندبوكس نظيفاً في حال لم يتم تهيئة الملف بعد
     }
 }
 
