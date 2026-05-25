@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
 async function triggerVanguardWorkflow() {
     const payloadInput = document.getElementById('issuePayload');
     const statusLabel = document.getElementById('systemStatus');
+    const pulseIndicator = document.getElementById('systemPulse');
     const outputCodeContainer = document.getElementById('certifiedOutput');
     const payload = payloadInput.value.trim();
 
@@ -25,11 +26,12 @@ async function triggerVanguardWorkflow() {
     // Adapt UI layer into processing/stress states
     statusLabel.innerText = "System: Deploying Framework...";
     statusLabel.className = "text-xs font-mono uppercase tracking-wider text-amber-400 system-pulse-active";
+    if(pulseIndicator) pulseIndicator.className = "w-3 h-3 rounded-full bg-amber-400 system-pulse-active";
+    
     outputCodeContainer.innerText = "// Establishing encrypted connection with GitHub Workflow runner...\n// Invoking Gemini 1.5 Pro deep context manifold (2M Token Cap)...\n// Pulling sovereign validation layer from PyPI repository...";
 
     try {
         // Safe operational alert instructing how to trigger the secure private runtime
-        // This decouples static pages from exposing repository internal credentials
         alert("Sovereign Security Protocol: Copy your massive issue content payload. Paste it into the workflow dispatch input of your Private Repository under Actions to preserve structural protection.");
         
         // Initiate active background validation engine tracking
@@ -47,6 +49,7 @@ async function triggerVanguardWorkflow() {
 function startPollingResolution() {
     const outputCodeContainer = document.getElementById('certifiedOutput');
     const statusLabel = document.getElementById('systemStatus');
+    const pulseIndicator = document.getElementById('systemPulse');
     const entropyIndicator = document.getElementById('entropyValue');
     
     // Check consistency intervals dynamically to reduce cloud execution footprints
@@ -62,14 +65,16 @@ function startPollingResolution() {
                 if (telemetryData.status === "ready") {
                     outputCodeContainer.innerText = telemetryData.last_perfect_solution;
                     statusLabel.innerText = "System: Core Immune";
-                    statusLabel.className = "text-xs font-mono uppercase tracking-wider text-emerald-400";
+                    statusLabel.className = "text-xs font-mono uppercase tracking-wider text-emerald-400 font-bold";
+                    if(pulseIndicator) pulseIndicator.className = "w-3 h-3 rounded-full bg-emerald-500";
                     entropyIndicator.innerText = "0.00 (Absolute Unitary Sovereignty)";
                     entropyIndicator.className = "text-emerald-400 transition-colors";
                     clearInterval(trackingInterval);
                 } else if (telemetryData.status === "failed") {
                     outputCodeContainer.innerText = telemetryData.last_perfect_solution;
                     statusLabel.innerText = "System: Lockdown Active";
-                    statusLabel.className = "text-xs font-mono uppercase tracking-wider text-rose-500";
+                    statusLabel.className = "text-xs font-mono uppercase tracking-wider text-rose-500 font-bold";
+                    if(pulseIndicator) pulseIndicator.className = "w-3 h-3 rounded-full bg-rose-500";
                     entropyIndicator.innerText = "High Divergence (Logic Poisoning Suppressed)";
                     entropyIndicator.className = "text-rose-500 transition-colors";
                     clearInterval(trackingInterval);
@@ -104,7 +109,7 @@ async function hydrateInterfaceState() {
 function copyCertifiedCode() {
     const targetPayload = document.getElementById('certifiedOutput').innerText;
     navigator.clipboard.writeText(targetPayload).then(() => {
-        const copyButton = document.querySelector("button[onclick='copyCertifiedCode()']");
+        const copyButton = document.getElementById('copyBtn');
         const originalText = copyButton.innerText;
         copyButton.innerText = "✓ Copied Clean";
         copyButton.className = "text-xs bg-emerald-900/40 text-emerald-400 font-medium py-1.5 px-3 rounded border border-emerald-700 transition-colors duration-150";
