@@ -7,6 +7,10 @@ import argparse
 from google import genai
 from google.genai import types
 
+# --- استدعاء المكتبة السيادية ---
+from penta_v_kernel.processing import PentaCleaner
+from penta_v_kernel.bridge import LogicSignature
+
 # --- وظائف الدعم السيادية ---
 
 def update_tracker(status):
@@ -38,6 +42,8 @@ def simulate_compilation(code, test):
 
 def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=None, retry_count=0):
     MAX_RETRIES = 3
+    # تهيئة المنظف السيادي
+    cleaner = PentaCleaner()
     
     system_instr = get_prompt("architect_profile", "system_instruction")
     current_prompt = f"{base_prompt}\n\nISSUE: {issue_content}"
@@ -54,34 +60,39 @@ def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=
         )
     )
     
-    code_match = re.search(r"\[CODE_START\](.*?)\[CODE_END\]", response.text, re.DOTALL)
-    test_match = re.search(r"\[TESTS_START\](.*?)\[TESTS_END\]", response.text, re.DOTALL)
+    # التنقية السيادية للمخرج قبل المعالجة
+    purified_text = cleaner.scrub(response.text)
+    
+    code_match = re.search(r"\[CODE_START\](.*?)\[CODE_END\]", purified_text, re.DOTALL)
+    test_match = re.search(r"\[TESTS_START\](.*?)\[TESTS_END\]", purified_text, re.DOTALL)
     
     if code_match and test_match:
         code_txt = code_match.group(1).strip()
         test_txt = test_match.group(1).strip()
         
-        if simulate_compilation(code_txt, test_txt):
+        # التوقيع المنطقي للتحقق من التوافق
+        sig = LogicSignature(stress_level=0.1, complexity_index=0.1)
+        
+        if simulate_compilation(code_txt, test_txt) and sig.is_valid():
             with open('circuit_impl.tsx', 'w', encoding='utf-8') as f: f.write(code_txt)
             with open('circuit_impl.test.ts', 'w', encoding='utf-8') as f: f.write(test_txt)
             
             update_memory(issue_content, 'circuit_impl.tsx', 'circuit_impl.test.ts')
-            update_tracker("ready") # تحديث الحالة للجاهزية
-            print("✅ [Validation Passed] Artifacts finalized.")
+            update_tracker("ready")
+            print("✅ [Validation Passed] Artifacts finalized with Penta-V Kernel.")
             return True
         elif retry_count < MAX_RETRIES:
-            return run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg="Compilation Failed", retry_count=retry_count + 1)
+            return run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg="Compilation or Kernel Validation Failed", retry_count=retry_count + 1)
     
     update_tracker("error")
     return False
 
 def main():
-    # إعدادات الـ Argument لتلقي الـ Issue من الـ Pipeline
     parser = argparse.ArgumentParser()
     parser.add_argument("--issue_content", required=True)
     args = parser.parse_args()
     
-    update_tracker("processing") # إبلاغ الواجهة ببدء العمل
+    update_tracker("processing")
     
     gemini_key = os.environ.get("GEMINI_API_KEY")
     ai_client = genai.Client(api_key=gemini_key)
