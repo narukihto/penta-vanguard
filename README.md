@@ -15,6 +15,7 @@ The system operates across three interconnected semantic layers to guarantee det
 2. **Autopilot Engine (`agent_subsystem/`):** Orchestrates dynamic knowledge harvesting via Tavily AI and handles neural evaluation cycles using Gemini 1.5 Pro, ensuring execution temperature remains strictly bound ($T=0.0$).
 3. **Immune Gate (`penta-v-kernel`):** An isolated, native Rust validation layer compiled and imported from PyPI. It evaluates output consistency signatures against structural stability manifolds, suppressing corrupted logic automatically.
 
+https://narukihto.github.io/penta-vanguard/
 ---
 
 ## 📂 Structural Tree Layout
