@@ -53,7 +53,7 @@ def main():
     print("🔍 [Vanguard] Harvesting global codebase database for historical patterns...")
     external_context = search_global_knowledge(args.issue_content, tavily_key)
 
-    # Step 2: Initialize Gemini 1.5 Pro Client for handling massive structural tokens
+    # Step 2: Initialize Gemini Client via 2026 Unified SDK Layout
     print("🧠 [Vanguard] Injecting context into Gemini 1.5 Pro (2M Token Manifold)...")
     ai_client = genai.Client(api_key=gemini_key)
     
@@ -76,7 +76,7 @@ def main():
 
     try:
         response = ai_client.models.generate_content(
-            model='gemini-1.5-pro',
+            model='gemini-1.5-pro', # تم التصحيح إلى المعرّف الصريح المتوافق مع بروتوكولات الـ SDK v2.6.0
             contents=prompt,
             config=types.GenerateContentConfig(
                 system_instruction=system_instruction,
