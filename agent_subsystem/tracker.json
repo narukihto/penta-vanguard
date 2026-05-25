@@ -1,5 +1,5 @@
 {
     "status": "ready",
-    "last_perfect_solution": "```javascript\n// webpack.config.js\nmodule.exports = {\n  // ... other webpack configurations\n  resolve: {\n    extensions: [\"\", \".ts\", \".tsx\", \".js\", \".json\"],\n  },\n  // ...\n};\n```",
+    "last_perfect_solution": "```javascript\n// vue.config.js\nconst path = require('path');\n\nmodule.exports = {\n  configureWebpack: {\n    resolve: {\n      alias: {\n        '@': path.resolve(__dirname, 'src')\n      }\n    }\n  }\n};\n```",
     "history": []
 }
