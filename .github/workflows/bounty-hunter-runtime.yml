@@ -1,0 +1,79 @@
+name: Penta-V Vanguard Sovereign CI/CD Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_content:
+        description: 'Complete Massive Issue & Repository Context Payload'
+        required: true
+        type: string
+
+# Permissions required to update flat-file tracking and deploy static pages
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Job 1: Execute Global Knowledge Harvesting & Logic Purification
+  purify_and_resolve:
+    environment: github-pages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Sovereign Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.VANGUARD_GITHUB_TOKEN }}
+
+      - name: Setup Pinned Enterprise Python Environment
+        uses: actions/setup-python@v5
+        with:
+          python-python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Verified 2026 Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Execute Vanguard Autopilot Engine
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+        run: |
+          python agent_subsystem/autopilot.py --issue_content "${{ github.event.inputs.issue_content }}"
+
+      - name: Commit Structural State Hydration (tracker.json)
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Artifact Bot"
+          git add agent_subsystem/tracker.json
+          # Avoid failing the pipeline if tracker outcomes remain identical
+          git diff-index --quiet HEAD || git commit -m "💾 [Database Auto-Sync] Hydrated telemetry state metrics"
+          git push
+
+  # Job 2: Automate GitHub Pages Deployment Layer
+  deploy_sovereign_dashboard:
+    needs: purify_and_resolve
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Refreshed Main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Global Pages Infrastructure
+        uses: actions/configure-pages@v4
+
+      - name: Pack Static Assets Artifact (docs/)
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'docs/'
+
+      - name: Deliver Dashboard to Live Static Production
+        id: deployment
+        uses: actions/deploy-pages@v4
