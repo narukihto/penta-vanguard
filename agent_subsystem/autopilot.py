@@ -73,10 +73,9 @@ def main():
     
     Analyze the payload, apply global knowledge context, and output the absolute structural code fix:
     """
-
-    try:
+try:
         response = ai_client.models.generate_content(
-            model='gemini-1.5-pro', # تم التصحيح إلى المعرّف الصريح المتوافق مع بروتوكولات الـ SDK v2.6.0
+            model='models/gemini-1.5-pro',  # إضافة بادئة models/ لحل مشكلة الـ Routing في الـ SDK v2.6.0 قاطعاً
             contents=prompt,
             config=types.GenerateContentConfig(
                 system_instruction=system_instruction,
