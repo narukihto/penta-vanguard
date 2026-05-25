@@ -98,7 +98,7 @@ def main():
     # Create the cryptographic-grade validation token using Penta-V stability metrics
     sig = LogicSignature(1.0, stability_score)
     
-    # Structural integrity validation step
+    # Structural integrity validation step (Unified JSON Schema Mapping)
     if sig.is_valid() and proposed_code:
         print("✅ [Penta-V] Phase VI Resonance Lattice verified. Logic contains zero corruption.")
         
@@ -108,13 +108,15 @@ def main():
         
         result_data = {
             "status": "ready",
-            "last_perfect_solution": proposed_code.strip()
+            "last_perfect_solution": proposed_code.strip(),
+            "history": []
         }
     else:
         print("🚨 [Penta-V] Logic Poisoning Detected! Output failed mathematical resonance.")
         result_data = {
             "status": "failed",
-            "last_perfect_solution": "// [Penta-V Lockdown Alert] The generated solution was rejected due to structural code drift."
+            "last_perfect_solution": "// [Penta-V Lockdown Alert] The generated solution was rejected due to structural code drift.",
+            "history": []
         }
 
     # Step 4: Atomic update to the flat-file database tracking manifold
