@@ -1,4 +1,4 @@
 # Explicitly pinned 2026 enterprise dependencies
-google-genai==0.1.1
+google-genai==2.6.0
 tavily-python==0.5.0
 penta-v-kernel==0.4.3
