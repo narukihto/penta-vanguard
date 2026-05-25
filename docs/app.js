@@ -108,7 +108,6 @@ function startPollingResolution() {
     
     const trackingInterval = setInterval(async () => {
         try {
-            // استعلام مباشر من الـ API الخاص بملفات جيت هاب لجلب التحديث في نفس ثانية الـ Push
             const apiUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/agent_subsystem/tracker.json?ref=main&t=${Date.now()}`;
             
             const headers = { "Accept": "application/vnd.github.v3.raw" };
@@ -119,7 +118,9 @@ function startPollingResolution() {
             const streamResult = await fetch(apiUrl, { headers: headers });
             
             if (streamResult.ok) {
-                const telemetryData = await streamResult.json();
+                // إصلاح جذري: قراءة الملف كنص أولاً ثم تحليله إلى كائن JSON لمنع انهيار اللوب دلالياً
+                const rawText = await streamResult.text();
+                const telemetryData = JSON.parse(rawText);
                 
                 if (telemetryData.status === "ready") {
                     outputCodeContainer.innerText = telemetryData.last_perfect_solution;
@@ -140,9 +141,10 @@ function startPollingResolution() {
                 }
             }
         } catch (fetchError) {
-            // الحفاظ على استمرارية اللوب في حال حدوث خطأ شبكة عابر
+            // صيد الخطأ وطباعته في الـ Console للتشخيص إن لزم الأمر مع ضمان استمرارية المحاولة
+            console.error("Vanguard Pipeline Engine Sync Tick Failed:", fetchError);
         }
-    }, 4000); // فحص مكثف كل 4 ثوانٍ من الـ API المباشر لسرعة استجابة فائقة
+    }, 4000); // تفقد مستمر كل 4 ثوانٍ
 }
 
 /**
@@ -159,13 +161,14 @@ async function hydrateInterfaceState() {
 
         const check = await fetch(apiUrl, { headers: headers });
         if (check.ok) {
-            const data = await check.json();
+            const rawText = await check.text();
+            const data = JSON.parse(rawText);
             if (data.status === "ready") {
                 document.getElementById('certifiedOutput').innerText = data.last_perfect_solution;
             }
         }
     } catch (e) {
-        // يبقى الساندبوكس نظيفاً في حال لم يتم تهيئة الملف بعد
+        console.error("Hydration Layer Fault:", e);
     }
 }
 
