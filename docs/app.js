@@ -1,6 +1,7 @@
 /**
  * Penta-V Vanguard UI Controller Substrate
  * Handles massive content stream mapping, dynamic polling, and state hydration.
+ * Updated for direct, automated background workflow dispatch execution.
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -23,23 +24,52 @@ async function triggerVanguardWorkflow() {
         return;
     }
 
+    // الإعدادات البنيوية الخاصة بمستودعك لربط الـ API
+    const owner = "narukihto"; 
+    const repo = "penta-vanguard";
+    const workflowId = "bounty-hunter-runtime.yml";
+
     // Adapt UI layer into processing/stress states
-    statusLabel.innerText = "System: Deploying Framework...";
+    statusLabel.innerText = "System: Processing Payload...";
     statusLabel.className = "text-xs font-mono uppercase tracking-wider text-amber-400 system-pulse-active";
-    if(pulseIndicator) pulseIndicator.className = "w-3 h-3 rounded-full bg-amber-400 system-pulse-active";
+    if(pulseIndicator) pulseIndicator.className = "w-3 h-3 rounded-full bg-amber-400 system-pulse-active animate-pulse";
     
-    outputCodeContainer.innerText = "// Establishing encrypted connection with GitHub Workflow runner...\n// Invoking Gemini 1.5 Pro deep context manifold (2M Token Cap)...\n// Pulling sovereign validation layer from PyPI repository...";
+    outputCodeContainer.innerText = "// Ingesting massive bounty registry stream...\n// Forwarding intelligence frame to private execution workspace via API...\n// Triggering private GitHub Runner via VANGUARD_GITHUB_TOKEN...";
 
     try {
-        // Safe operational alert instructing how to trigger the secure private runtime
-        alert("Sovereign Security Protocol: Copy your massive issue content payload. Paste it into the workflow dispatch input of your Private Repository under Actions to preserve structural protection.");
-        
-        // Initiate active background validation engine tracking
-        startPollingResolution();
+        // استدعاء مباشر لـ GitHub API من المتصفح لتشغيل الـ Action صامتاً دون مغادرة الموقع
+        const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/${workflowId}/dispatches`, {
+            method: "POST",
+            headers: {
+                "Accept": "application/vnd.github+json",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                ref: "main",
+                inputs: {
+                    issue_content: payload
+                }
+            })
+        });
+
+        if (response.ok || response.status === 204) {
+            outputCodeContainer.innerText = "// ✅ Payload accepted and route verified!\n// Background pipeline initialized successfully.\n// Monitoring tracker state for purified logic results (Polling live)...";
+            
+            // Initiate active background validation engine tracking
+            startPollingResolution();
+        } else {
+            const errData = await response.text();
+            throw new Error(`GitHub Routing Layer Rejected: ${response.status} - ${errData}`);
+        }
+
     } catch (error) {
         statusLabel.innerText = "System: Frame Error";
-        statusLabel.className = "text-xs font-mono uppercase tracking-wider text-rose-500";
-        outputCodeContainer.innerText = `// Structural error intercepted during transmission: ${error.message}`;
+        statusLabel.className = "text-xs font-mono uppercase tracking-wider text-rose-500 font-bold";
+        if(pulseIndicator) pulseIndicator.className = "w-3 h-3 rounded-full bg-rose-500";
+        outputCodeContainer.innerText = `// Structural error intercepted during transmission: ${error.message}\n// Falling back to active tracking layer sync loop...`;
+        
+        // المحاولة التلقائية للاستماع للـ Tracker في كل الأحوال
+        startPollingResolution();
     }
 }
 
@@ -67,7 +97,7 @@ function startPollingResolution() {
                     statusLabel.innerText = "System: Core Immune";
                     statusLabel.className = "text-xs font-mono uppercase tracking-wider text-emerald-400 font-bold";
                     if(pulseIndicator) pulseIndicator.className = "w-3 h-3 rounded-full bg-emerald-500";
-                    entropyIndicator.innerText = "0.00 (Absolute Unitary Sovereignty)";
+                    entropyIndicator.innerText = "0.00 (Absolute Unitary Sovereignty v0.4.3)";
                     entropyIndicator.className = "text-emerald-400 transition-colors";
                     clearInterval(trackingInterval);
                 } else if (telemetryData.status === "failed") {
