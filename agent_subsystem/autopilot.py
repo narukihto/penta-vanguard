@@ -54,7 +54,7 @@ def main():
     external_context = search_global_knowledge(args.issue_content, tavily_key)
 
     # Step 2: Initialize Gemini Client via 2026 Unified SDK Layout
-    print("🧠 [Vanguard] Injecting context into Gemini 1.5 Pro (2M Token Manifold)...")
+    print("🧠 [Vanguard] Injecting context into Gemini 2.5 Production Manifold...")
     ai_client = genai.Client(api_key=gemini_key)
     
     # Engineering safe system instructions to avoid standard AI hallucinations and syntax filler
@@ -74,34 +74,33 @@ def main():
     Analyze the payload, apply global knowledge context, and output the absolute structural code fix:
     """
 
-    try:
-        # استخدام المعرّف المستقر والافتراضي للإنتاج الحجمي لضمان الـ Routing الصحيح في الـ SDK 2.6.0
-        response = ai_client.models.generate_content(
-            model='gemini-2.5-pro', 
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                system_instruction=system_instruction,
-                temperature=0.0, # Complete mathematical determinism to avoid code drift
-                max_output_tokens=8192
-            )
-        )
-        proposed_code = response.text
-    except Exception as e:
-        # إذا لم يكن الحساب ممتلكاً لترقية الـ 2.5 الصريحة، يتم الانتقال تلقائياً للمعرّف الأساسي البديل
+    # مصفوفة النماذج المعتمدة رسمياً في هندسة الـ SDK 2.6.0 لعام 2026 لتجنب خطأ الـ 404
+    targeted_models = ['gemini-2.5-pro', 'gemini-2.5-flash']
+    proposed_code = None
+
+    for model_name in targeted_models:
         try:
+            print(f"🔄 [Vanguard] Attempting evaluation via layout: {model_name}...")
             response = ai_client.models.generate_content(
-                model='gemini-1.5-pro',
+                model=model_name, 
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     system_instruction=system_instruction,
-                    temperature=0.0,
+                    temperature=0.0, # Complete mathematical determinism to avoid code drift
                     max_output_tokens=8192
                 )
             )
             proposed_code = response.text
-        except Exception as inner_e:
-            print(f"🚨 [Fatal] GenAI Engine error during model evaluation: {str(inner_e)}")
-            sys.exit(1)
+            if proposed_code:
+                print(f"✨ [Vanguard] Mathematical resonance achieved via {model_name}.")
+                break
+        except Exception as e:
+            print(f"⚠️ [Vanguard] Layout {model_name} bypassed or throttled: {str(e)}")
+            continue
+
+    if not proposed_code:
+        print("🚨 [Fatal] All certified production model manifolds returned 404/Execution Drift.")
+        sys.exit(1)
 
     print("🛡️ [Penta-V Core Gate] Commencing sub-geometric coherence validation check...")
 
