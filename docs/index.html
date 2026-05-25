@@ -23,47 +23,34 @@
         </div>
     </header>
 
-    <main class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 h-[calc(100vh-140px)]">
+    <main class="flex-1 grid grid-cols-1 xl:grid-cols-3 gap-4 p-4 h-[calc(100vh-140px)]">
         
-        <section class="flex flex-col bg-slate-900/40 border border-slate-800/80 rounded-xl p-5 space-y-4 glow-border">
-            <div class="flex justify-between items-center">
-                <h2 class="text-sm font-semibold tracking-wider text-slate-300 uppercase">📂 Issue & Repository Context Intake</h2>
-                <span class="text-xs font-mono text-slate-500">Supports up to 2M Tokens</span>
-            </div>
-            <textarea id="issuePayload" 
-                      class="flex-1 w-full bg-slate-950/80 text-slate-200 font-mono text-sm border border-slate-800 rounded-lg p-4 focus:outline-none resize-none placeholder-slate-600 transition-all duration-200"
-                      placeholder="Paste the complete GitHub Issue description, error stack traces, and relevant source code files here..."></textarea>
-            
-            <button onclick="triggerVanguardWorkflow()" 
-                    class="w-full bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-150 flex justify-center items-center space-x-2 space-x-reverse shadow-lg shadow-sky-950/40">
-                <span>🔥</span>
-                <span>Initiate Sovereign Resolution</span>
-            </button>
+        <section class="flex flex-col bg-slate-900/40 border border-slate-800 rounded-xl p-4 space-y-3">
+            <h2 class="text-xs font-semibold uppercase text-slate-300">📂 Issue Context</h2>
+            <textarea id="issuePayload" class="flex-1 w-full bg-slate-950 text-slate-200 font-mono text-xs border border-slate-800 rounded-lg p-3 resize-none focus:outline-none" placeholder="Paste issue details here..."></textarea>
+            <button onclick="triggerVanguardWorkflow()" class="w-full bg-sky-600 hover:bg-sky-500 py-2.5 rounded-lg text-sm font-bold">Initiate Resolution</button>
         </section>
 
-        <section class="flex flex-col bg-slate-900/40 border border-slate-800/80 rounded-xl p-5 space-y-4">
+        <section class="flex flex-col bg-slate-900/40 border border-slate-800 rounded-xl p-4 space-y-3">
             <div class="flex justify-between items-center">
-                <h2 class="text-sm font-semibold tracking-wider text-slate-300 uppercase">💻 Certified Code Solution</h2>
-                <div class="flex items-center space-x-2 space-x-reverse">
-                    <button onclick="localStorage.removeItem('VANGUARD_TOKEN'); alert('🔒 [Penta-V] Token storage flushed. You will be prompted for a new token on the next resolution trigger.');" 
-                            class="text-xs bg-slate-900 hover:bg-slate-800 text-slate-400 font-medium py-1.5 px-2.5 rounded border border-slate-800 transition-colors duration-150"
-                            title="Reset GitHub Access Token">
-                        🔑 Reset Token
-                    </button>
-                    <button onclick="copyCertifiedCode()" id="copyBtn"
-                            class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium py-1.5 px-3 rounded border border-slate-700 transition-colors duration-150">
-                        📋 Copy Code
-                    </button>
-                </div>
+                <h2 class="text-xs font-semibold uppercase text-slate-300">💻 Circuit Implementation</h2>
+                <button onclick="copyCertifiedCode('certifiedOutput')" class="text-[10px] bg-slate-800 px-2 py-1 rounded">📋 Copy</button>
             </div>
-            <div class="flex-1 w-full bg-slate-950/90 border border-slate-800 rounded-lg p-4 overflow-auto font-mono text-sm text-sky-400 select-all whitespace-pre"><code id="certifiedOutput">// Automated code fixes verified by Penta-V Lattice will project here...
-// Waiting for active session deployment loop.</code></div>
+            <div id="certifiedOutput" class="flex-1 w-full bg-slate-950 border border-slate-800 rounded-lg p-3 font-mono text-[11px] text-sky-400 overflow-auto whitespace-pre">Waiting for implementation...</div>
+        </section>
+
+        <section class="flex flex-col bg-slate-900/40 border border-slate-800 rounded-xl p-4 space-y-3">
+            <div class="flex justify-between items-center">
+                <h2 class="text-xs font-semibold uppercase text-emerald-400">🧪 Integration Tests</h2>
+                <button onclick="copyCertifiedCode('certifiedTests')" class="text-[10px] bg-slate-800 px-2 py-1 rounded">📋 Copy</button>
+            </div>
+            <div id="certifiedTests" class="flex-1 w-full bg-slate-950 border border-emerald-900/30 rounded-lg p-3 font-mono text-[11px] text-emerald-300 overflow-auto whitespace-pre">Waiting for tests...</div>
         </section>
     </main>
 
-    <footer class="border-t border-slate-800/60 bg-slate-950/60 px-6 py-2.5 flex justify-between text-xs font-mono text-slate-500">
-        <div>Entropy Vector: <span id="entropyValue" class="text-slate-400">0.00 (Stable)</span></div>
-        <div>Penta-V Core Integration: <span class="text-sky-400">v0.4.3 (Universal Sovereign Active)</span></div>
+    <footer class="border-t border-slate-800 bg-slate-950 px-6 py-2 flex justify-between text-[10px] font-mono text-slate-500">
+        <div>Entropy: <span id="entropyValue">0.00</span></div>
+        <div>Penta-V Core: v0.4.3 (Tri-Axis Active)</div>
     </footer>
 
     <script src="app.js"></script>
