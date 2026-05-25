@@ -3,10 +3,15 @@ import re
 import sys
 import json
 import datetime
+import argparse
 from google import genai
 from google.genai import types
 
 # --- وظائف الدعم السيادية ---
+
+def update_tracker(status):
+    with open('agent_subsystem/tracker.json', 'w') as f:
+        json.dump({"status": status, "last_updated": datetime.datetime.now().isoformat()}, f)
 
 def get_prompt(category, sub_key):
     with open('agent_subsystem/prompts.json', 'r') as f:
@@ -27,15 +32,14 @@ def update_memory(issue, code_file, test_file):
         f.truncate()
 
 def simulate_compilation(code, test):
-    # الربط مع الـ Compiler الفعلي هنا
     return True 
 
-# --- محرك التصحيح الذاتي (Self-Healing Engine) ---
+# --- محرك التصحيح الذاتي ---
 
 def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=None, retry_count=0):
     MAX_RETRIES = 3
     
-    system_instr = get_prompt("hardware_architect", "system_instruction")
+    system_instr = get_prompt("architect_profile", "system_instruction")
     current_prompt = f"{base_prompt}\n\nISSUE: {issue_content}"
     
     if error_msg:
@@ -61,27 +65,32 @@ def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=
             with open('circuit_impl.tsx', 'w', encoding='utf-8') as f: f.write(code_txt)
             with open('circuit_impl.test.ts', 'w', encoding='utf-8') as f: f.write(test_txt)
             
-            # توثيق النجاح في الذاكرة
             update_memory(issue_content, 'circuit_impl.tsx', 'circuit_impl.test.ts')
-            print("✅ [Validation Passed] Artifacts finalized & Memory updated.")
+            update_tracker("ready") # تحديث الحالة للجاهزية
+            print("✅ [Validation Passed] Artifacts finalized.")
             return True
         elif retry_count < MAX_RETRIES:
-            return run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg="Compilation/Test Logic Failed", retry_count=retry_count + 1)
+            return run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg="Compilation Failed", retry_count=retry_count + 1)
     
+    update_tracker("error")
     return False
 
 def main():
+    # إعدادات الـ Argument لتلقي الـ Issue من الـ Pipeline
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--issue_content", required=True)
+    args = parser.parse_args()
+    
+    update_tracker("processing") # إبلاغ الواجهة ببدء العمل
+    
     gemini_key = os.environ.get("GEMINI_API_KEY")
     ai_client = genai.Client(api_key=gemini_key)
     
-    # الحصول على التوجيهات من ملف الـ JSON
-    circuit_prompt = get_prompt("hardware_architect", "circuit_generation")
-    test_prompt = get_prompt("hardware_architect", "test_generation")
+    circuit_prompt = get_prompt("architect_profile", "circuit_generation")
+    test_prompt = get_prompt("architect_profile", "test_generation")
     base_prompt = f"{circuit_prompt}\n{test_prompt}"
     
-    issue = "Build the Arduino Nano with tscircuit" # مثال
-    
-    success = run_self_healing_synthesis(ai_client, base_prompt, issue)
+    success = run_self_healing_synthesis(ai_client, base_prompt, args.issue_content)
     if not success:
         sys.exit(1)
 
