@@ -1,6 +1,7 @@
 /**
  * Penta-V Vanguard UI Controller Substrate
  * Combined Runtime: Handles Payload Dispatching & Instant Telemetry Sync
+ * Sync Interval: 60 Seconds
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -60,7 +61,7 @@ async function triggerVanguardWorkflow() {
         });
 
         if (response.ok || response.status === 204) {
-            outputCodeContainer.innerText = "// ✅ Payload accepted. Vanguard Engine Active.\n// Monitoring stream for telemetry...";
+            outputCodeContainer.innerText = "// ✅ Payload accepted. Vanguard Engine Active.\n// Monitoring stream for telemetry (Sync interval: 60s)...";
             startPollingResolution(); 
         } else {
             throw new Error(`Routing Layer Rejected: ${response.status}`);
@@ -74,6 +75,7 @@ async function triggerVanguardWorkflow() {
 
 /**
  * الاستماع الفوري للنتائج (Polling)
+ * تم ضبط التردد ليكون كل 60 ثانية (60000ms)
  */
 function startPollingResolution() {
     const outputCodeContainer = document.getElementById('certifiedOutput');
@@ -81,9 +83,10 @@ function startPollingResolution() {
     const pulseIndicator = document.getElementById('systemPulse');
     const entropyIndicator = document.getElementById('entropyValue');
     
+    // ضبط التردد إلى 60,000 مللي ثانية (دقيقة واحدة)
     const trackingInterval = setInterval(async () => {
         try {
-            // استخدام رابط raw المباشر لتجاوز أي كاش أو تعقيدات API
+            console.log("System: Checking tracker.json (Sync Tick)...");
             const url = `https://raw.githubusercontent.com/${OWNER}/${REPO}/main/agent_subsystem/tracker.json?t=${Date.now()}`;
             const response = await fetch(url);
             
@@ -97,13 +100,15 @@ function startPollingResolution() {
                     statusLabel.className = "text-xs font-mono uppercase tracking-wider text-emerald-400 font-bold";
                     if(pulseIndicator) pulseIndicator.className = "w-3 h-3 rounded-full bg-emerald-500";
                     if(entropyIndicator) entropyIndicator.innerText = "0.00 (Absolute Unitary Sovereignty)";
+                    
+                    // إيقاف المراقبة بعد العثور على النتيجة
                     clearInterval(trackingInterval);
                 }
             }
         } catch (e) {
-            console.log("Polling for updates...");
+            console.log("System: Syncing pending...");
         }
-    }, 2000);
+    }, 60000); 
 }
 
 /**
