@@ -7,9 +7,8 @@ import argparse
 from google import genai
 from google.genai import types
 
-# --- استدعاء المكتبة السيادية ---
-from penta_v_kernel.processing import PentaCleaner
-from penta_v_kernel.bridge import LogicSignature
+# --- استدعاء المكتبة السيادية (تعديل استيراد متوافق مع v0.4.3) ---
+from penta_v_kernel import PentaCleaner, LogicSignature
 
 # --- وظائف الدعم السيادية ---
 
