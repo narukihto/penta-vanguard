@@ -47,9 +47,15 @@ jobs:
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
         run: |
           python agent_subsystem/autopilot.py --issue_content "${{ github.event.inputs.issue_content }}" > full_execution.log 2>&1
-          if [ $? -ne 0 ]; then
+
+      - name: Print Execution Logs on Failure
+        if: failure() || cancelled()
+        run: |
+          if [ -f full_execution.log ]; then
+            echo "=== CRITICAL INFRASTRUCTURE FAILURE LOG ==="
             cat full_execution.log
-            exit 1
+          else
+            echo "Log file not found."
           fi
 
       - name: Commit Structural State Hydration
