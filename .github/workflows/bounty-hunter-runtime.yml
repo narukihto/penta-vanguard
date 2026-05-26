@@ -36,12 +36,9 @@ jobs:
 
       - name: Install Verified 2026 Dependencies
         run: |
-          set -x
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install penta-v-kernel==0.4.3
-          python -c "import penta_v_kernel; print(f'DEBUG: Location: {penta_v_kernel.__file__}')"
-          # إعداد المسار السيادي للبيئة
           echo "PYTHONPATH=$PYTHONPATH:$(python -c 'import site; print(site.getsitepackages()[0])')" >> $GITHUB_ENV
 
       - name: Execute Vanguard Autopilot Engine
@@ -49,9 +46,11 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
         run: |
-          set -x
-          
-          python agent_subsystem/autopilot.py --issue_content "${{ github.event.inputs.issue_content }}"
+          python agent_subsystem/autopilot.py --issue_content "${{ github.event.inputs.issue_content }}" > full_execution.log 2>&1
+          if [ $? -ne 0 ]; then
+            cat full_execution.log
+            exit 1
+          fi
 
       - name: Commit Structural State Hydration
         if: success()
