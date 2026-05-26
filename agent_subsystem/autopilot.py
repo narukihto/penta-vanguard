@@ -4,31 +4,19 @@ import sys
 import json
 import datetime
 import argparse
-import importlib.util
 from google import genai
 from google.genai import types
 
-# --- استدعاء المكتبة السيادية (تحميل آمن) ---
-def get_kernel_components():
-    try:
-        # البحث الديناميكي عن المكتبة في مسارات التثبيت
-        import penta_v_kernel
-        return penta_v_kernel.PentaCleaner, penta_v_kernel.LogicSignature
-    except ImportError:
-        # محاولة الوصول للمسارات الفرعية إذا فشل الجذر
-        try:
-            from penta_v_kernel.processing.cleaner import PentaCleaner
-            from penta_v_kernel.bridge.validator import LogicSignature
-            return PentaCleaner, LogicSignature
-        except ImportError:
-            # الحل الأخير: التنبيه بالخطأ في المسار
-            print("🚨 [Kernel Alert] Critical: Cannot locate Kernel components.")
-            sys.exit(1)
+# --- استدعاء المكتبة السيادية (المسجلة في lib.rs فقط) ---
+from penta_v_kernel import LogicSignature
 
-PentaCleaner, LogicSignature = get_kernel_components()
+# --- وظائف التنقية (استبدال PentaCleaner بـ Regex محكم) ---
+def simple_cleaner_scrub(text):
+    # إزالة أي ثرثرة خارج نطاق الأكواد المطلوبة
+    text = re.sub(r'^(?!.*\[CODE_START\]).*$', '', text, flags=re.MULTILINE)
+    return text
 
 # --- وظائف الدعم السيادية ---
-
 def update_tracker(status):
     with open('agent_subsystem/tracker.json', 'w') as f:
         json.dump({"status": status, "last_updated": datetime.datetime.now().isoformat()}, f)
@@ -55,11 +43,8 @@ def simulate_compilation(code, test):
     return True 
 
 # --- محرك التصحيح الذاتي ---
-
 def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=None, retry_count=0):
     MAX_RETRIES = 3
-    # تهيئة المنظف السيادي
-    cleaner = PentaCleaner()
     
     system_instr = get_prompt("architect_profile", "system_instruction")
     current_prompt = f"{base_prompt}\n\nISSUE: {issue_content}"
@@ -76,8 +61,8 @@ def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=
         )
     )
     
-    # التنقية السيادية للمخرج قبل المعالجة
-    purified_text = cleaner.scrub(response.text)
+    # التنقية باستخدام الـ Regex المحلي بدلاً من PentaCleaner
+    purified_text = simple_cleaner_scrub(response.text)
     
     code_match = re.search(r"\[CODE_START\](.*?)\[CODE_END\]", purified_text, re.DOTALL)
     test_match = re.search(r"\[TESTS_START\](.*?)\[TESTS_END\]", purified_text, re.DOTALL)
@@ -86,7 +71,7 @@ def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=
         code_txt = code_match.group(1).strip()
         test_txt = test_match.group(1).strip()
         
-        # التوقيع المنطقي للتحقق من التوافق
+        # التوقيع المنطقي للتحقق (موجود ومسجل في المكتبة)
         sig = LogicSignature(stress_level=0.1, complexity_index=0.1)
         
         if simulate_compilation(code_txt, test_txt) and sig.is_valid():
@@ -95,10 +80,10 @@ def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=
             
             update_memory(issue_content, 'circuit_impl.tsx', 'circuit_impl.test.ts')
             update_tracker("ready")
-            print("✅ [Validation Passed] Artifacts finalized with Penta-V Kernel.")
+            print("✅ [Validation Passed] Artifacts finalized with LogicSignature Anchor.")
             return True
         elif retry_count < MAX_RETRIES:
-            return run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg="Compilation or Kernel Validation Failed", retry_count=retry_count + 1)
+            return run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg="Validation Failed", retry_count=retry_count + 1)
     
     update_tracker("error")
     return False
