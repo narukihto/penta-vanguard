@@ -7,16 +7,12 @@ import argparse
 from google import genai
 from google.genai import types
 
-# --- استدعاء المكتبة السيادية (المسجلة في lib.rs فقط) ---
 from penta_v_kernel import LogicSignature
 
-# --- وظائف التنقية (استبدال PentaCleaner بـ Regex محكم) ---
 def simple_cleaner_scrub(text):
-    # إزالة أي ثرثرة خارج نطاق الأكواد المطلوبة
     text = re.sub(r'^(?!.*\[CODE_START\]).*$', '', text, flags=re.MULTILINE)
     return text
 
-# --- وظائف الدعم السيادية ---
 def update_tracker(status):
     with open('agent_subsystem/tracker.json', 'w') as f:
         json.dump({"status": status, "last_updated": datetime.datetime.now().isoformat()}, f)
@@ -42,7 +38,6 @@ def update_memory(issue, code_file, test_file):
 def simulate_compilation(code, test):
     return True 
 
-# --- محرك التصحيح الذاتي ---
 def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=None, retry_count=0):
     MAX_RETRIES = 3
     
@@ -52,16 +47,19 @@ def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=
     if error_msg:
         current_prompt += f"\n\nPREVIOUS ATTEMPT FAILED with error:\n{error_msg}\nFIX THE CODE."
     
-    response = ai_client.models.generate_content(
-        model='gemini-2.5-flash',
-        contents=current_prompt,
-        config=types.GenerateContentConfig(
-            system_instruction=system_instr,
-            temperature=0.0
+    try:
+        response = ai_client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=current_prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=system_instr,
+                temperature=0.0
+            )
         )
-    )
+    except Exception as e:
+        print(f"API ERROR: {str(e)}")
+        return False
     
-    # التنقية باستخدام الـ Regex المحلي بدلاً من PentaCleaner
     purified_text = simple_cleaner_scrub(response.text)
     
     code_match = re.search(r"\[CODE_START\](.*?)\[CODE_END\]", purified_text, re.DOTALL)
@@ -71,18 +69,19 @@ def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=
         code_txt = code_match.group(1).strip()
         test_txt = test_match.group(1).strip()
         
-        # التوقيع المنطقي للتحقق (موجود ومسجل في المكتبة)
-        sig = LogicSignature(stress_level=0.1, complexity_index=0.1)
-        
-        if simulate_compilation(code_txt, test_txt) and sig.is_valid():
-            with open('circuit_impl.tsx', 'w', encoding='utf-8') as f: f.write(code_txt)
-            with open('circuit_impl.test.ts', 'w', encoding='utf-8') as f: f.write(test_txt)
+        try:
+            sig = LogicSignature(0.1, 0.1)
+            if simulate_compilation(code_txt, test_txt) and sig.is_valid():
+                with open('circuit_impl.tsx', 'w', encoding='utf-8') as f: f.write(code_txt)
+                with open('circuit_impl.test.ts', 'w', encoding='utf-8') as f: f.write(test_txt)
+                
+                update_memory(issue_content, 'circuit_impl.tsx', 'circuit_impl.test.ts')
+                update_tracker("ready")
+                return True
+        except Exception as e:
+            print(f"KERNEL ERROR: {str(e)}")
             
-            update_memory(issue_content, 'circuit_impl.tsx', 'circuit_impl.test.ts')
-            update_tracker("ready")
-            print("✅ [Validation Passed] Artifacts finalized with LogicSignature Anchor.")
-            return True
-        elif retry_count < MAX_RETRIES:
+        if retry_count < MAX_RETRIES:
             return run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg="Validation Failed", retry_count=retry_count + 1)
     
     update_tracker("error")
@@ -102,8 +101,7 @@ def main():
     test_prompt = get_prompt("architect_profile", "test_generation")
     base_prompt = f"{circuit_prompt}\n{test_prompt}"
     
-    success = run_self_healing_synthesis(ai_client, base_prompt, args.issue_content)
-    if not success:
+    if not run_self_healing_synthesis(ai_client, base_prompt, args.issue_content):
         sys.exit(1)
 
 if __name__ == "__main__":
