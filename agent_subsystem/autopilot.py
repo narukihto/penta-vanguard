@@ -4,6 +4,7 @@ import sys
 import json
 import datetime
 import argparse
+import traceback
 from google import genai
 from google.genai import types
 
@@ -36,7 +37,7 @@ def update_memory(issue, code_file, test_file):
         f.truncate()
 
 def simulate_compilation(code, test):
-    return True 
+    return True
 
 def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=None, retry_count=0):
     MAX_RETRIES = 3
@@ -55,8 +56,8 @@ def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=
                 temperature=0.0
             )
         )
-    except Exception as e:
-        print(f"API_ERROR: {str(e)}")
+    except Exception:
+        traceback.print_exc()
         return False
     
     purified_text = simple_cleaner_scrub(response.text)
@@ -75,8 +76,8 @@ def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=
                 update_memory(issue_content, 'circuit_impl.tsx', 'circuit_impl.test.ts')
                 update_tracker("ready")
                 return True
-        except Exception as e:
-            print(f"KERNEL_ERROR: {str(e)}")
+        except Exception:
+            traceback.print_exc()
             
         if retry_count < MAX_RETRIES:
             return run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg="Validation Failed", retry_count=retry_count + 1)
