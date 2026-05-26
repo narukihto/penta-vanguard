@@ -36,10 +36,11 @@ jobs:
 
       - name: Install Verified 2026 Dependencies
         run: |
+          set -x  # تفعيل التتبع لطباعة كل أمر قبل تنفيذه
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install penta-v-kernel==0.4.3
-          # تصدير المسار لضمان رؤية النظام للمكتبة (الاستدعاء السيادي)
+          python -c "import penta_v_kernel; print(f'DEBUG: Location: {penta_v_kernel.__file__}')"
           echo "PYTHONPATH=$PYTHONPATH:$(python -c 'import site; print(site.getsitepackages()[0])')" >> $GITHUB_ENV
 
       - name: Execute Vanguard Autopilot Engine
@@ -47,36 +48,12 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
         run: |
-          python agent_subsystem/autopilot.py --issue_content "${{ github.event.inputs.issue_content }}"
+          set -x  # تتبع تنفيذ المحرك
+          python -v agent_subsystem/autopilot.py --issue_content "${{ github.event.inputs.issue_content }}" 2>&1
 
       - name: Commit Structural State Hydration
+        if: always() # تنفيذ حتى لو فشل المحرك لنرى الـ state
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action Artifact Bot"
-          git add agent_subsystem/tracker.json
-          if [ -f "circuit_impl.tsx" ]; then git add circuit_impl.tsx; fi
-          if [ -f "circuit_impl.test.ts" ]; then git add circuit_impl.test.ts; fi
-          
-          git diff --staged --quiet || git commit -m "💾 [Database Auto-Sync] Hydrated state and atomic circuit artifacts with Kernel Validation"
-          git push
-
-  deploy_sovereign_dashboard:
-    needs: purify_and_resolve
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Refreshed Main branch
-        uses: actions/checkout@v4
-        with:
-          ref: main
-
-      - name: Setup Global Pages Infrastructure
-        uses: actions/configure-pages@v4
-
-      - name: Pack Static Assets Artifact (docs/)
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: 'docs/'
-
-      - name: Deliver Dashboard to Live Static Production
-        id: deployment
-        uses: actions/deploy-pages@v4
+          # ... (باقي كود الـ commit)
