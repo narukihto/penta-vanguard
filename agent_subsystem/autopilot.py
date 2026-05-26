@@ -36,9 +36,6 @@ def update_memory(issue, code_file, test_file):
         json.dump(data, f, indent=2)
         f.truncate()
 
-def simulate_compilation(code, test):
-    return True
-
 def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=None, retry_count=0):
     MAX_RETRIES = 3
     system_instr = get_prompt("architect_profile", "system_instruction")
@@ -69,13 +66,18 @@ def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=
         test_txt = test_match.group(1).strip()
         
         try:
+            print(f"DEBUG: Attempting LogicSignature init...")
             sig = LogicSignature(0.1, 0.1)
-            if simulate_compilation(code_txt, test_txt) and sig.is_valid():
+            print(f"DEBUG: LogicSignature valid? {sig.is_valid()}")
+            
+            if sig.is_valid():
                 with open('circuit_impl.tsx', 'w', encoding='utf-8') as f: f.write(code_txt)
                 with open('circuit_impl.test.ts', 'w', encoding='utf-8') as f: f.write(test_txt)
                 update_memory(issue_content, 'circuit_impl.tsx', 'circuit_impl.test.ts')
                 update_tracker("ready")
                 return True
+            else:
+                print("DEBUG: LogicSignature returned False.")
         except Exception:
             traceback.print_exc()
             
@@ -89,12 +91,17 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--issue_content", required=True)
     args = parser.parse_args()
+    
+    if not os.environ.get("GEMINI_API_KEY"):
+        print("ERROR: GEMINI_API_KEY not found in environment!")
+        sys.exit(1)
+        
     update_tracker("processing")
-    gemini_key = os.environ.get("GEMINI_API_KEY")
-    ai_client = genai.Client(api_key=gemini_key)
+    ai_client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
     circuit_prompt = get_prompt("architect_profile", "circuit_generation")
     test_prompt = get_prompt("architect_profile", "test_generation")
     base_prompt = f"{circuit_prompt}\n{test_prompt}"
+    
     if not run_self_healing_synthesis(ai_client, base_prompt, args.issue_content):
         sys.exit(1)
 
