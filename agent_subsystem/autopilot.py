@@ -7,9 +7,9 @@ import argparse
 from google import genai
 from google.genai import types
 
-# --- استدعاء المكتبة السيادية (تعديل استيراد متوافق مع v0.4.3) ---
-from penta_v_kernel import PentaCleaner, LogicSignature
-
+# --- استدعاء المكتبة السيادية (تعديل استيراد هيكلي) ---
+from penta_v_kernel.processing.cleaner import PentaCleaner
+from penta_v_kernel.bridge.validator import LogicSignature
 # --- وظائف الدعم السيادية ---
 
 def update_tracker(status):
