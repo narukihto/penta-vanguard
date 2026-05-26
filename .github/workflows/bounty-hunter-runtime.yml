@@ -46,16 +46,16 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
         run: |
-          python agent_subsystem/autopilot.py --issue_content "${{ github.event.inputs.issue_content }}" > full_execution.log 2>&1
+          python agent_subsystem/autopilot.py --issue_content "${{ github.event.inputs.issue_content }}" 2>&1 | tee full_execution.log
 
-      - name: Print Execution Logs on Failure
-        if: failure() || cancelled()
+      - name: Print System Logs on Outcome
+        if: always()
         run: |
           if [ -f full_execution.log ]; then
-            echo "=== CRITICAL INFRASTRUCTURE FAILURE LOG ==="
+            echo "=== SYSTEM EXECUTION METRICS & LOGS ==="
             cat full_execution.log
           else
-            echo "Log file not found."
+            echo "System log artifact extraction failed to generate."
           fi
 
       - name: Commit Structural State Hydration
@@ -63,7 +63,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action Artifact Bot"
-          git add agent_subsystem/tracker.json
+          git add agent_subsystem/*.json
           if [ -f "circuit_impl.tsx" ]; then git add circuit_impl.tsx; fi
           if [ -f "circuit_impl.test.ts" ]; then git add circuit_impl.test.ts; fi
           git diff --staged --quiet || git commit -m "💾 [Database Auto-Sync] Hydrated state artifacts"
