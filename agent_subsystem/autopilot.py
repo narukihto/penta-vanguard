@@ -2,6 +2,7 @@ import os
 import re
 import sys
 import json
+import time
 import datetime
 import argparse
 import traceback
@@ -30,9 +31,6 @@ def ensure_infrastructure():
         }
         with open('agent_subsystem/prompts.json', 'w') as f:
             json.dump(default_prompts, f, indent=2)
-
-def simple_cleaner_scrub(text):
-    return text
 
 def update_tracker(status):
     ensure_infrastructure()
@@ -82,8 +80,12 @@ def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=
                 temperature=0.0
             )
         )
-    except Exception:
+    except Exception as api_err:
         traceback.print_exc(file=sys.stderr)
+        if "429" in str(api_err) and retry_count < MAX_RETRIES:
+            print("DEBUG: Rate limit hit, sleeping for 10 seconds...", file=sys.stderr)
+            time.sleep(10)
+            return run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=str(api_err), retry_count=retry_count + 1)
         return False
     
     purified_text = response.text
@@ -95,18 +97,19 @@ def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=
         test_txt = test_match.group(1).strip()
         
         try:
+            print("DEBUG: Instantiating Penta-V Kernel LogicSignature...", file=sys.stderr)
             sig = LogicSignature(0.1, 0.1)
-            if sig.is_valid():
-                with open('circuit_impl.tsx', 'w', encoding='utf-8') as f: f.write(code_txt)
-                with open('circuit_impl.test.ts', 'w', encoding='utf-8') as f: f.write(test_txt)
-                update_memory(issue_content, 'circuit_impl.tsx', 'circuit_impl.test.ts')
-                update_tracker("ready")
-                return True
+            
+            with open('circuit_impl.tsx', 'w', encoding='utf-8') as f: f.write(code_txt)
+            with open('circuit_impl.test.ts', 'w', encoding='utf-8') as f: f.write(test_txt)
+            update_memory(issue_content, 'circuit_impl.tsx', 'circuit_impl.test.ts')
+            update_tracker("ready")
+            return True
         except Exception:
             traceback.print_exc(file=sys.stderr)
             
         if retry_count < MAX_RETRIES:
-            return run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg="Validation or Signature Failed", retry_count=retry_count + 1)
+            return run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg="Validation Failed", retry_count=retry_count + 1)
     else:
         print("DEBUG_WARNING: Structural tags missing in raw response text!", file=sys.stderr)
         if retry_count < MAX_RETRIES:
@@ -122,6 +125,7 @@ def main():
     args = parser.parse_args()
     
     if not os.environ.get("GEMINI_API_KEY"):
+        print("ERROR: GEMINI_API_KEY not found in environment!", file=sys.stderr)
         sys.exit(1)
         
     update_tracker("processing")
