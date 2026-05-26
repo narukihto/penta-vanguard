@@ -40,7 +40,6 @@ def simulate_compilation(code, test):
 
 def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=None, retry_count=0):
     MAX_RETRIES = 3
-    
     system_instr = get_prompt("architect_profile", "system_instruction")
     current_prompt = f"{base_prompt}\n\nISSUE: {issue_content}"
     
@@ -57,11 +56,10 @@ def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=
             )
         )
     except Exception as e:
-        print(f"API ERROR: {str(e)}")
+        print(f"API_ERROR: {str(e)}")
         return False
     
     purified_text = simple_cleaner_scrub(response.text)
-    
     code_match = re.search(r"\[CODE_START\](.*?)\[CODE_END\]", purified_text, re.DOTALL)
     test_match = re.search(r"\[TESTS_START\](.*?)\[TESTS_END\]", purified_text, re.DOTALL)
     
@@ -74,12 +72,11 @@ def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=
             if simulate_compilation(code_txt, test_txt) and sig.is_valid():
                 with open('circuit_impl.tsx', 'w', encoding='utf-8') as f: f.write(code_txt)
                 with open('circuit_impl.test.ts', 'w', encoding='utf-8') as f: f.write(test_txt)
-                
                 update_memory(issue_content, 'circuit_impl.tsx', 'circuit_impl.test.ts')
                 update_tracker("ready")
                 return True
         except Exception as e:
-            print(f"KERNEL ERROR: {str(e)}")
+            print(f"KERNEL_ERROR: {str(e)}")
             
         if retry_count < MAX_RETRIES:
             return run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg="Validation Failed", retry_count=retry_count + 1)
@@ -91,16 +88,12 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--issue_content", required=True)
     args = parser.parse_args()
-    
     update_tracker("processing")
-    
     gemini_key = os.environ.get("GEMINI_API_KEY")
     ai_client = genai.Client(api_key=gemini_key)
-    
     circuit_prompt = get_prompt("architect_profile", "circuit_generation")
     test_prompt = get_prompt("architect_profile", "test_generation")
     base_prompt = f"{circuit_prompt}\n{test_prompt}"
-    
     if not run_self_healing_synthesis(ai_client, base_prompt, args.issue_content):
         sys.exit(1)
 
