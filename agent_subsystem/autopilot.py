@@ -4,12 +4,29 @@ import sys
 import json
 import datetime
 import argparse
+import importlib.util
 from google import genai
 from google.genai import types
 
-# --- استدعاء المكتبة السيادية (تعديل استيراد هيكلي) ---
-from penta_v_kernel.processing.cleaner import PentaCleaner
-from penta_v_kernel.bridge.validator import LogicSignature
+# --- استدعاء المكتبة السيادية (تحميل آمن) ---
+def get_kernel_components():
+    try:
+        # البحث الديناميكي عن المكتبة في مسارات التثبيت
+        import penta_v_kernel
+        return penta_v_kernel.PentaCleaner, penta_v_kernel.LogicSignature
+    except ImportError:
+        # محاولة الوصول للمسارات الفرعية إذا فشل الجذر
+        try:
+            from penta_v_kernel.processing.cleaner import PentaCleaner
+            from penta_v_kernel.bridge.validator import LogicSignature
+            return PentaCleaner, LogicSignature
+        except ImportError:
+            # الحل الأخير: التنبيه بالخطأ في المسار
+            print("🚨 [Kernel Alert] Critical: Cannot locate Kernel components.")
+            sys.exit(1)
+
+PentaCleaner, LogicSignature = get_kernel_components()
+
 # --- وظائف الدعم السيادية ---
 
 def update_tracker(status):
