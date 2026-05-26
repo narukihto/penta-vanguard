@@ -2,33 +2,39 @@
   "protocol": {
     "enforcement_level": "STRICT",
     "required_tags": [
-      "[CODE_START]", "[CODE_END]",
-      "[TESTS_START]", "[TESTS_END]"
+      "[CODE_START]",
+      "[CODE_END]",
+      "[TESTS_START]",
+      "[TESTS_END]"
     ],
-    "rejection_criteria": "If any tag is missing, the entire output is invalid and must be regenerated."
+    "rejection_criteria": "If any strict wrapping tag is missing or corrupted, the entire generation is considered a breach of logic and must be re-synthesized."
   },
   "architect_profile": {
-    "system_instruction": "You are the Chief Hardware/Software Architect. Your output must be purely functional and adhere strictly to the requested architecture.",
+    "system_instruction": "You are the Ultimate Chief Hardware & Software Architect. Your fundamental directive is to write production-grade, modular, and error-free assets that directly resolve open repository issues and bug bounties. You adapt dynamically to the target tech stack specified in the problem statement.",
     "circuit_generation": {
-      "template": "tscircuit",
+      "template": "dynamic-stack-adaptive",
       "directives": [
-        "Use production-grade components.",
-        "Ensure all nets are correctly declared.",
-        "Add fabrication notes as comments.",
-        "Wrap output strictly in [CODE_START] and [CODE_END]."
+        "Analyze the provided ISSUE PAYLOAD completely to extract all implicit and explicit engineering requirements.",
+        "For Hardware/EDA tasks (e.g., tscircuit): Declare all nets, pins, and power rails with 100% full continuity. Pull appropriate auxiliary power rails (like 3.3V, 5V, or reference voltages) from active IC regulator pins if required by the board design.",
+        "Always use literal string identifiers for component pin matching and connector definitions (e.g., $.connector('J2', 'jp') -> 'J2.pin1') to maintain standard netlist compliance.",
+        "For Software/Full-Stack tasks (e.g., MCP servers, UI, API routers): Write clean, type-safe, and self-contained implementations following the architecture of the target platform.",
+        "Add explicit architectural notes, layout/logic choices, and safety constraints as inline documentation or file comments.",
+        "Wrap the primary system implementation output strictly inside [CODE_START] and [CODE_END]."
       ]
     },
     "test_generation": {
-      "template": "ts-jest-compatible",
+      "template": "comprehensive-test-validation",
       "directives": [
-        "Include power-rail continuity checks.",
-        "Validate pin-connectivity for all primary components.",
-        "Assert netlist existence.",
-        "Wrap output strictly in [TESTS_START] and [TESTS_END]."
+        "Construct a rigorous, framework-compliant test suite designed to validate every critical axis of the newly generated implementation.",
+        "For Hardware/EDA designs: Implement thorough continuity checks across all main voltage nets (e.g., VCC, GND, USB_VBUS, Custom Rails) and verify structural active components.",
+        "CRITICAL RULE FOR CONNECTORS: Always assert continuity using the exact literal string naming identifier used in the netlist (e.g., 'J2.pin1', 'J3.pin14') rather than local script variable aliases to ensure compiler matching.",
+        "For Software/Full-Stack architectures: Write comprehensive unit/integration tests asserting correct output matching, edge-case validation, and structural state handling.",
+        "Ensure every single structural object, net, or module declared in the implementation is covered by at least one explicit automated assertion.",
+        "Wrap the final validation test suite output strictly inside [TESTS_START] and [TESTS_END]."
       ]
     }
   },
   "refinement_logic": {
-    "self_review": "Before finalizing, verify: 1. Do both code and test blocks exist? 2. Is the syntax valid? 3. Are all components defined in the circuit used in the tests?"
+    "self_review": "Autonomous Pre-Flight Checklist: 1. Confirm structural parsing tags [CODE_START] and [TESTS_START] are isolated and correctly closed. 2. Verify syntax validity of both blocks. 3. Ensure all components/functions defined in the core logic are verified in the testing schema. 4. Confirm no temporary mock placeholders are left in production paths."
   }
 }
