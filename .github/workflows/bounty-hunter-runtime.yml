@@ -38,8 +38,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          # تثبيت المكتبة السيادية لضمان منع الهلوسة
           pip install penta-v-kernel==0.4.3
+          # تصدير المسار لضمان رؤية النظام للمكتبة (الاستدعاء السيادي)
+          echo "PYTHONPATH=$PYTHONPATH:$(python -c 'import site; print(site.getsitepackages()[0])')" >> $GITHUB_ENV
 
       - name: Execute Vanguard Autopilot Engine
         env:
