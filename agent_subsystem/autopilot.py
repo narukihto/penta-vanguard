@@ -12,7 +12,7 @@ from google.genai import types
 from penta_v_kernel import LogicSignature
 
 def ensure_infrastructure():
-    os.makedirs('agent_subsystem', True)
+    os.makedirs('agent_subsystem', exist_ok=True)
     if not os.path.exists('agent_subsystem/tracker.json'):
         with open('agent_subsystem/tracker.json', 'w') as f:
             json.dump({"status": "init", "last_updated": datetime.datetime.now().isoformat()}, f)
