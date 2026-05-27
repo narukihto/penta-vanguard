@@ -89,10 +89,12 @@ def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=
         )
     except Exception as api_err:
         traceback.print_exc(file=sys.stderr)
-        if "429" in str(api_err) and retry_count < MAX_RETRIES:
-            print("DEBUG: Rate limit hit, sleeping for 15 seconds...", file=sys.stderr)
-            time.sleep(15)
-            return run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=str(api_err), retry_count=retry_count + 1)
+        err_str = str(api_err)
+        # التحقق المشترك لـ الـ Rate limit والـ Server High Demand (503) لتهدئة السيرفر
+        if ("429" in err_str or "503" in err_str) and retry_count < MAX_RETRIES:
+            print(f"DEBUG: Server busy or Rate limit hit ({err_str}). Sleeping for 20 seconds...", file=sys.stderr)
+            time.sleep(20)
+            return run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=err_str, retry_count=retry_count + 1)
         return False
     
     purified_text = response.text if response.text else ""
