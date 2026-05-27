@@ -66,7 +66,7 @@ def update_memory(issue, code_file, test_file):
 def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=None, retry_count=0):
     MAX_RETRIES = 3
     system_instr = get_prompt("architect_profile", "system_instruction")
-    current_prompt = f"{base_prompt}\n\nStrict Requirement: You must include [CODE_START] and [CODE_END] around the TSX code, and [TESTS_START] and [TESTS_END] around the test code.\n\nISSUE: {issue_content}"
+    current_prompt = f"{base_prompt}\n\nStrict Requirement: You must include [CODE_START] and [CODE_END] around the code, and [TESTS_START] and [TESTS_END] around the test code.\n\nISSUE: {issue_content}"
     
     if error_msg:
         current_prompt += f"\n\nPREVIOUS ATTEMPT FAILED with error:\n{error_msg}\nFIX THE CODE AND FORMAT."
@@ -77,18 +77,25 @@ def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=
             contents=current_prompt,
             config=types.GenerateContentConfig(
                 system_instruction=system_instr,
-                temperature=0.0
+                temperature=0.0,
+                max_output_tokens=8192,
+                safety_settings=[
+                    types.SafetySetting(
+                        category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                        threshold=types.HarmBlockThreshold.BLOCK_NONE,
+                    )
+                ]
             )
         )
     except Exception as api_err:
         traceback.print_exc(file=sys.stderr)
         if "429" in str(api_err) and retry_count < MAX_RETRIES:
-            print("DEBUG: Rate limit hit, sleeping for 10 seconds...", file=sys.stderr)
-            time.sleep(10)
+            print("DEBUG: Rate limit hit, sleeping for 15 seconds...", file=sys.stderr)
+            time.sleep(15)
             return run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=str(api_err), retry_count=retry_count + 1)
         return False
     
-    purified_text = response.text
+    purified_text = response.text if response.text else ""
     code_match = re.search(r"\[CODE_START\](.*?)\[CODE_END\]", purified_text, re.DOTALL)
     test_match = re.search(r"\[TESTS_START\](.*?)\[TESTS_END\]", purified_text, re.DOTALL)
     
@@ -113,7 +120,8 @@ def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=
     else:
         print("DEBUG_WARNING: Structural tags missing in raw response text!", file=sys.stderr)
         if retry_count < MAX_RETRIES:
-            return run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg="Format Missing [CODE_START] or [TESTS_START]", retry_count=retry_count + 1)
+            # Pass sample fragments to let the system self-heal dynamically based on size constraints
+            return run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg="Format Missing [CODE_START] or [TESTS_START] due to block length truncation. Shorten and optimize the output length.", retry_count=retry_count + 1)
     
     update_tracker("error")
     return False
