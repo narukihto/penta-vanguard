@@ -69,7 +69,7 @@ def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=
     current_prompt = f"{base_prompt}\n\nStrict Requirement: You must include [CODE_START] and [CODE_END] around the code, and [TESTS_START] and [TESTS_END] around the test code.\n\nISSUE: {issue_content}"
     
     if error_msg:
-        current_prompt += f"\n\nPREVIOUS ATTEMPT FAILED with error:\n{error_msg}\nFIX THE CODE AND FORMAT."
+        current_prompt += f"\n\nCRITICAL FIX REQUIRED: Your previous response missed the formatting tags. DO NOT write explanations or conversational text. Output ONLY the code wrapped in [CODE_START]/[CODE_END] and tests wrapped in [TESTS_START]/[TESTS_END]."
     
     try:
         response = ai_client.models.generate_content(
@@ -90,7 +90,6 @@ def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=
     except Exception as api_err:
         traceback.print_exc(file=sys.stderr)
         err_str = str(api_err)
-        # التحقق المشترك لـ الـ Rate limit والـ Server High Demand (503) لتهدئة السيرفر
         if ("429" in err_str or "503" in err_str) and retry_count < MAX_RETRIES:
             print(f"DEBUG: Server busy or Rate limit hit ({err_str}). Sleeping for 20 seconds...", file=sys.stderr)
             time.sleep(20)
@@ -120,10 +119,18 @@ def run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg=
         if retry_count < MAX_RETRIES:
             return run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg="Validation Failed", retry_count=retry_count + 1)
     else:
+        # كشف الاستجابة قسرياً في السجلات عند الفشل لمعاينة الخلل
+        print("=================== RAW RESPONSE METRICS ===================", file=sys.stderr)
+        print(f"Total Response Length: {len(purified_text)} characters", file=sys.stderr)
+        print("--- START OF TEXT ---", file=sys.stderr)
+        print(purified_text[:400], file=sys.stderr)
+        print("--- END OF TEXT ---", file=sys.stderr)
+        print(purified_text[-400:] if len(purified_text) > 400 else purified_text, file=sys.stderr)
+        print("============================================================", file=sys.stderr)
+        
         print("DEBUG_WARNING: Structural tags missing in raw response text!", file=sys.stderr)
         if retry_count < MAX_RETRIES:
-            # Pass sample fragments to let the system self-heal dynamically based on size constraints
-            return run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg="Format Missing [CODE_START] or [TESTS_START] due to block length truncation. Shorten and optimize the output length.", retry_count=retry_count + 1)
+            return run_self_healing_synthesis(ai_client, base_prompt, issue_content, error_msg="Missing Structural Tags", retry_count=retry_count + 1)
     
     update_tracker("error")
     return False
