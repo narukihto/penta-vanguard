@@ -12,7 +12,7 @@ from google.genai import types
 from penta_v_kernel import LogicSignature
 
 def ensure_infrastructure():
-    os.makedirs('agent_subsystem', exist_ok=True)
+    os.makedirs('agent_subsystem', True)
     if not os.path.exists('agent_subsystem/tracker.json'):
         with open('agent_subsystem/tracker.json', 'w') as f:
             json.dump({"status": "init", "last_updated": datetime.datetime.now().isoformat()}, f)
@@ -66,38 +66,56 @@ def update_memory(issue, code_file, test_file):
     except Exception:
         pass
 
-def run_stage_call(ai_client, system_instr, current_prompt, temperature=0.2, retry_count=0):
-    """دالة مخصصة لطلب المحتوى مع معالجة ذكية للأخطاء 429 و 503 وفترات النوم الإجبارية"""
-    MAX_RETRIES = 4
-    try:
-        response = ai_client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=current_prompt,
-            config=types.GenerateContentConfig(
-                system_instruction=system_instr,
-                temperature=temperature,
-                max_output_tokens=8192,
-                safety_settings=[
-                    types.SafetySetting(
-                        category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-                        threshold=types.HarmBlockThreshold.BLOCK_NONE,
-                    )
-                ]
+def run_stage_call(ai_client, system_instr, current_prompt, temperature=0.2):
+    """
+    نسخة محسنة بالكامل تعتمد على حلقة تكرار (Iterative Loop) بدلاً من الاستدعاء الذاتي.
+    تضمن تنظيف الـ Exception Context تماماً وتمنع انهيار الـ Stack.
+    """
+    MAX_RETRIES = 5
+    retry_count = 0
+    
+    while retry_count <= MAX_RETRIES:
+        try:
+            response = ai_client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=current_prompt,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_instr,
+                    temperature=temperature,
+                    max_output_tokens=8192,
+                    safety_settings=[
+                        types.SafetySetting(
+                            category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                            threshold=types.HarmBlockThreshold.BLOCK_NONE,
+                        )
+                    ]
+                )
             )
-        )
-        return response.text if response.text else ""
-    except Exception as err:
-        err_str = str(err)
-        traceback.print_exc(file=sys.stderr)
-        
-        # إذا واجهنا نفاد حصة (429) أو سيرفر غير متاح (503)، ننام فوراً لمدة تضمن فتح الحصة مجدداً
-        if ("429" in err_str or "503" in err_str or "RESOURCE_EXHAUSTED" in err_str) and retry_count < MAX_RETRIES:
-            sleep_time = 35 + (retry_count * 10)
-            print(f"DEBUG_WARNING: Rate limit or 503 hit. Sleeping for {sleep_time} seconds before retry...", file=sys.stderr)
-            time.sleep(sleep_time)
-            return run_stage_call(ai_client, system_instr, current_prompt, temperature, retry_count + 1)
+            if response and response.text:
+                return response.text
+            return ""
             
-        return ""
+        except Exception as err:
+            err_str = str(err)
+            retry_count += 1
+            
+            # إذا وصلنا للحد الأقصى للمحاولات، نطبع الخطأ ونخرج
+            if retry_count > MAX_RETRIES:
+                print(f"CRITICAL: Maximum retries reached. Failing stage call. Last error: {err_str}", file=sys.stderr)
+                return ""
+                
+            # التحقق من أخطاء الـ Rate Limits أو السيرفر غير المتاح
+            if any(token in err_str for token in ["429", "503", "RESOURCE_EXHAUSTED", "UNAVAILABLE"]):
+                # تراجع أسّي نظيف يعتمد على رقم المحاولة الحالية
+                sleep_time = 40 + (retry_count * 15)
+                print(f"DEBUG_WARNING: API tier saturated ({err_str}). Retrying ({retry_count}/{MAX_RETRIES}). Sleeping for {sleep_time}s...", file=sys.stderr)
+                time.sleep(sleep_time)
+            else:
+                # أخطاء أخرى غير متعلقة بالـ Rate Limits، ننتظر قليلاً ونحاول مجدداً
+                print(f"DEBUG_WARNING: Non-quota exception raised: {err_str}. Retrying after 10s...", file=sys.stderr)
+                time.sleep(10)
+
+    return ""
 
 def run_multi_stage_synthesis(ai_client, issue_content, retry_count=0):
     MAX_RETRIES = 3
@@ -126,7 +144,7 @@ def run_multi_stage_synthesis(ai_client, issue_content, retry_count=0):
         print("DEBUG_WARNING: Stage 1 failed to harvest complete code tags!", file=sys.stderr)
         if retry_count < MAX_RETRIES:
             print("LOG: Retrying Stage 1 execution completely...", file=sys.stderr)
-            time.sleep(5)
+            time.sleep(15)
             return run_multi_stage_synthesis(ai_client, issue_content, retry_count=retry_count + 1)
         return False
         
@@ -139,8 +157,8 @@ def run_multi_stage_synthesis(ai_client, issue_content, retry_count=0):
     sys_instr_test = get_prompt("architect_profile", "system_instruction_test")
     base_test_prompt = get_prompt("architect_profile", "test_generation")
     
-    # إراحة الـ API قليلاً بين المرحلتين لتفادي الـ Spikes والـ Rate Limits
-    time.sleep(5)
+    # نافذة تهدئة لحماية معدل الطلبات لكل دقيقة (RPM)
+    time.sleep(15)
     
     current_test_prompt = (
         f"{base_test_prompt}\n\n"
