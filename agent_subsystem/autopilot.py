@@ -66,8 +66,9 @@ def update_memory(issue, code_file, test_file):
     except Exception:
         pass
 
-def run_stage_call(ai_client, system_instr, current_prompt, temperature=0.2):
-    """دالة مخصصة لتنفيذ طلب منفصل لكل مرحلة لضمان استغلال كامل الـ Tokens للحل الفعلي"""
+def run_stage_call(ai_client, system_instr, current_prompt, temperature=0.2, retry_count=0):
+    """دالة مخصصة لطلب المحتوى مع معالجة ذكية للأخطاء 429 و 503 وفترات النوم الإجبارية"""
+    MAX_RETRIES = 4
     try:
         response = ai_client.models.generate_content(
             model='gemini-2.5-flash',
@@ -85,15 +86,24 @@ def run_stage_call(ai_client, system_instr, current_prompt, temperature=0.2):
             )
         )
         return response.text if response.text else ""
-    except Exception:
+    except Exception as err:
+        err_str = str(err)
         traceback.print_exc(file=sys.stderr)
+        
+        # إذا واجهنا نفاد حصة (429) أو سيرفر غير متاح (503)، ننام فوراً لمدة تضمن فتح الحصة مجدداً
+        if ("429" in err_str or "503" in err_str or "RESOURCE_EXHAUSTED" in err_str) and retry_count < MAX_RETRIES:
+            sleep_time = 35 + (retry_count * 10)
+            print(f"DEBUG_WARNING: Rate limit or 503 hit. Sleeping for {sleep_time} seconds before retry...", file=sys.stderr)
+            time.sleep(sleep_time)
+            return run_stage_call(ai_client, system_instr, current_prompt, temperature, retry_count + 1)
+            
         return ""
 
 def run_multi_stage_synthesis(ai_client, issue_content, retry_count=0):
     MAX_RETRIES = 3
     
     # -----------------------------------------------------------------
-    # المرحلة الأولى: تركيز كامل الطاقة لتوليد كود المنطق الفعلي كاملاً
+    # المرحلة الأولى: توليد كود المنطق الفعلي كاملاً
     # -----------------------------------------------------------------
     print("LOG: Initiating Stage 1 - Comprehensive Code Synthesis...", file=sys.stderr)
     sys_instr_code = get_prompt("architect_profile", "system_instruction_code")
@@ -115,14 +125,22 @@ def run_multi_stage_synthesis(ai_client, issue_content, retry_count=0):
     if not code_match:
         print("DEBUG_WARNING: Stage 1 failed to harvest complete code tags!", file=sys.stderr)
         if retry_count < MAX_RETRIES:
+            print("LOG: Retrying Stage 1 execution completely...", file=sys.stderr)
+            time.sleep(5)
             return run_multi_stage_synthesis(ai_client, issue_content, retry_count=retry_count + 1)
         return False
         
     code_txt = code_match.group(1).strip()
 
+    # -----------------------------------------------------------------
+    # المرحلة الثانية: بناء فحص تكامل ذكي ومفصل بناءً على الكود المستخرج
+    # -----------------------------------------------------------------
     print("LOG: Initiating Stage 2 - Targeted Test Suite Synthesis...", file=sys.stderr)
     sys_instr_test = get_prompt("architect_profile", "system_instruction_test")
     base_test_prompt = get_prompt("architect_profile", "test_generation")
+    
+    # إراحة الـ API قليلاً بين المرحلتين لتفادي الـ Spikes والـ Rate Limits
+    time.sleep(5)
     
     current_test_prompt = (
         f"{base_test_prompt}\n\n"
@@ -139,6 +157,9 @@ def run_multi_stage_synthesis(ai_client, issue_content, retry_count=0):
         
     test_txt = test_match.group(1).strip() if test_match else "// Fallback generated due to test stage parsing exception\ndescribe('DO', () => { it('executes correctly', () => {}) });"
 
+    # -----------------------------------------------------------------
+    # تفعيل النواة البرمجية وحفظ مخرجات المنظومة
+    # -----------------------------------------------------------------
     try:
         print("DEBUG: Instantiating Penta-V Kernel LogicSignature...", file=sys.stderr)
         sig = LogicSignature(0.1, 0.1)
